@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "axios": "^1.4.0",
+    "express": "^4.18.2",
+    "htmlparser2": "^9.0.0",
+    "realtime-trains-scraper": "^1.0.0"
+  },
+  "scripts": {
+    "watch": "nodemon src/index.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.6.1",
+    "nodemon": "^3.0.1"
+  }
+}
