@@ -16,9 +16,7 @@ async function presentStations(
   ).then((res) =>
     res.text().then((data) => {
       const $ = cheerio.load(data);
-      stations.push(() => {
-        $("a.service").each((trainRow) => ({})); //push the location, push the destination
-      });
+      const trains = $("a.service");
     })
   );
   console.log(stations);
