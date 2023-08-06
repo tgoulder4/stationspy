@@ -16,10 +16,19 @@ async function presentStations(
   ).then((res) =>
     res.text().then((data) => {
       const $ = cheerio.load(data);
-      const trains = $("a.service");
+      $("a.service").each((i, service) => {
+        console.log("pushing....");
+        if (service.children(".pass").length === 0) {
+          //only show the non-pass stations
+          stations.push({
+            // add the station to the list of stations to display. not working.
+            location: service.children(".location").text(),
+            plannedArrival: service.children("plan").text(),
+          });
+        }
+      });
     })
   );
-  console.log(stations);
 }
 
 function getCurrentDayTime(timeString) {
