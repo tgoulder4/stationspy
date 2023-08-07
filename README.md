@@ -9,18 +9,23 @@ npm i trainspy
 ```js
 import trackTrain from "trainspy";
 
-//trackTrain returns an emitter
-trackTrain("P71733").then((myTrain) =>
+//trackTrain returns an emitter. Call it whatever, I called it myTrain.
+trackTrain("P71733").then((myTrainTracker) =>
   // if an event labelled "UPDATE" is emitted,
-  myTrain.on("UPDATE", (currentState) => {
+  myTrainTracker.on("UPDATE", (currentState) => {
   // log the update to the console
     console.log(currentState);
   })
 );
 ```
+# Get departures
+Departures can be retrived by ```findTrains(stationCode)``` or ```findTrains(stationName)```:
+```js
+findTrains("WLF") || findTrains("Whittlesford Parkway")
+```
 
 # Tracking a train
-You first need the ID of the train.
+You first need the service ID.
 Can be retrived by ```findTrains(stationCode)```:
 ```js
 findTrains("WLF");
@@ -40,21 +45,24 @@ which returns departures from that station. E.g.:
   }
 ]
 ```
-
-Assuming you have the trainID, use
-```trackTrain(trainID, refreshRate)```:
+## I have the service ID
 ```js
-trackTrain("L14131").then((myTrain) =>
-  // on an update,
-  myTrain.on("UPDATE", (currentState) => {
-    console.log(currentState);
-  })
-);
+trackTrain(serviceID, refreshRate)
 ```
-which emits live updates on the train via ```myTrain```. E.g.:
+trackTrain() returns a promise (emitter). 
+
+Example of subscribing to this emitter:
+```js
+trackTrain("L14125").then((emitter) => {
+  emitter.on("UPDATE", (update) => {
+    console.log(update) //replace with your logic in terms of the update
+  });
+});
+```
+which emits live updates (as JSON) on the train until the journey is complete.
 ```js
 { status: 'Approaching', station: 'Hackney Downs [HAC]' }
+```
+```js
 { status: 'Departed', station: 'Hackney Downs [HAC]' }
-{ status: 'Approaching', station: 'Clapton [CPT]' }
-{ status: 'Departed', station: 'Clapton [CPT]' }
 ```
