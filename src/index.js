@@ -1,16 +1,15 @@
 //https://www.realtimetrains.co.uk/service/gb-nr:{SELECTEDSERVICE}/{CURRENTYEAR}-{CURRENTMONTH}-{CURRENTDAY}/detailed
 const cheerio = require("cheerio");
-const { axios } = require("axios");
 const dayjs = require("dayjs");
 
 //method: present stations
-async function presentStations(
+async function findTrainsByStation(
   stationName,
   date = getCurrentDayTime("YYYY-MM-DD"),
   when = getCurrentDayTime("HHmm")
 ) {
   //if stationName is the only parameter,
-  const stations = [];
+  const services = [];
   await fetch(
     `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationName}/${date}/${when}`
   ).then((res) =>
@@ -25,53 +24,98 @@ async function presentStations(
         const service = $(el);
         const codeMatch = service.attr("href").match(/gb-nr:(\w+)/);
         if (!service.hasClass("pass")) {
-          stations.push({
-            scheduleTime: service.find(".plan.a").text(),
+          services.push({
             destination: service.find(".location.d").text(),
-            actualTime: service.find(".real.a").text(),
+            departure: {
+              actual: service.find(".real.a").text(),
+              scheduled: service.find(".plan.a").text(),
+            },
             serviceID: codeMatch[1],
           });
         }
       });
-      console.log(stations);
+      console.log(services);
     })
   );
 }
 async function trackTrain(
   trainID,
   date = getCurrentDayTime("YYYY-MM-DD"),
-  when = getCurrentDayTime("HHmm")
+  when = getCurrentDayTime("HHmm"),
+  delay = 5000
+  //find props by finding name of last arrived station (realtime)
+
+  //find first .arr.exp. this is the next station. find the first .arr.rt.act, this is
+  // the previous station if .platint doesn't exist.
 ) {
-  let prevStation = "";
+  let previousState = "";
+  let currentState = "";
+  let previousStation = "";
   let currentStation = "";
   let nextStation = "";
-  await fetch(
-    `https://www.realtimetrains.co.uk/service/gb-nr:${trainID}/${date}/detailed`
-  ).then((res) => {
-    res.text().then((data) => {
-      const $ = cheerio.load(data);
-      const completedJourney = "";
-      //.arr.exp.last() has children .TD.(R1)? instead
-      const statusObj = $(".platint");
-      if (!completedJourney) {
-        switch (statusObj.length) {
-          case 0:
-            prevStation = currentStation;
-            nextStation = currentStation = "";
-            console.log(`Between ${prevStation} and `); //get next matching class of .location.name
-          case 1:
-            currentStation = statusObj.parent().find(".name").text();
-        }
+  let html = "";
+  let response = "";
+  let $ = "";
+  let lastArrival = "";
+  let status = "";
+  const tracking = setInterval(async () => {
+    response = await fetch(
+      `https://www.realtimetrains.co.uk/service/gb-nr:${trainID}/${date}/detailed`
+    );
+    html = await response.text();
+    $ = cheerio.load(html);
+    //each state: { doors:"C" status:"At Platform", station:"Kings Norton" }
+    // {status: "Heading to", station: "Birmingham New Street"}
+    // {doors:"O", status:"At Platform" station:"Northfield"}
+    currentState = (() => {
+      lastArrival = $(".realtime").last().find(".arr.rt.act");
+      if ($(".info").length == 1) {
+        //the service no longer exists in the rtt db
+        clearInterval(tracking); //stop tracking
+        console.log("exiting loop");
+        return "NOT_FOUND";
+      } else if (lastArrival.length > 0) {
+        //the journey is complete
+        clearInterval(tracking);
+        return "JOURNEY_COMPLETE";
       } else {
-        console.log("journey complete.");
-      }
+        //the train is undergoing its journey
+        status = $(".platint").text();
+        previousStation = $(".dep.rt.act")
+          .last()
+          .parent()
+          .parent()
+          .find(".name")
+          .text();
+        currentStation = $(".platint").siblings(".name").text();
+        nextStation = $(".arr.exp")
+          .first()
+          .parent()
+          .siblings(".location")
+          .find(".name")
+          .text();
 
+        if (!currentStation) {
+          //there is no status meaning it's between two stations
+          return `Passed ${previousStation}`; //get next matching class of .location.name
+        } else {
+          //it's actioning on a platform
+          return `Now ${status} ${currentStation}`;
+        }
+      } //close else
       //I want to continuously send updates via console when a change is detected in an element via cheerio
-    });
-  });
+    })();
+    currentState != previousState
+      ? (() => {
+          console.log(currentState);
+          previousState = currentState;
+        })()
+      : "";
+  }, delay);
 }
+//subscribe to the trackTrainEmitter. subscription(update=>console.log(update))
 function getCurrentDayTime(timeString) {
   return dayjs().format(timeString);
 }
 //method: input service id to track & return updates
-trackTrain("L98308");
+trackTrain("G59597");
