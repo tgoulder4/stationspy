@@ -1,20 +1,16 @@
 import cheerio from "cheerio";
 import getCurrentDayTime from "./getDayTime.js";
 import EventEmitter from "events";
+import equal from "deep-equal";
+
 /**
  * For trainID: findTrainsByStation() lists trains with their IDs. Or via realtimetrains.co.uk: '/gb-nr:XXXXXX' in URL.
  * @param {string} trainID
  * @param {number} refreshRate
  */
-export default async function trackTrain(
-  trainID,
-  refreshRate = 5000
-  //find props by finding name of last arrived station (realtime)
-
-  //find first .arr.exp. this is the next station. find the first .arr.rt.act, this is
-  // the previous station if .platint doesn't exist.
-) {
+export default async function trackTrain(trainID, refreshRate = 5000) {
   const trainUpdateEmitter = new EventEmitter();
+  //initialise variables
   let previousState = "";
   let currentState = "";
   let previousStation = "";
@@ -26,27 +22,27 @@ export default async function trackTrain(
   let lastArrival = "";
   let status = "";
   const tracking = setInterval(async () => {
+    //fetch rtt
     response = await fetch(
       `https://www.realtimetrains.co.uk/service/gb-nr:${trainID}/${getCurrentDayTime(
         "YYYY-MM-DD"
       )}/detailed`
     );
+    //change to html
     html = await response.text();
+    //load with cheerio for manipulation
     $ = cheerio.load(html);
-    //each state: { doors:"C" status:"At Platform", station:"Kings Norton" }
-    // {status: "Heading to", station: "Birmingham New Street"}
-    // {doors:"O", status:"At Platform" station:"Northfield"}
+    //get current state of train as currentState
     currentState = (() => {
       lastArrival = $(".realtime").last().find(".arr.rt.act");
       if ($(".info").length == 1) {
-        //the service no longer exists in the rtt db
-        clearInterval(tracking); //stop tracking
-        console.log("exiting loop");
-        return "NOT_FOUND";
+        //the service no longer exists in the rtt db, stop tracking
+        clearInterval(tracking);
+        return { status: "Journey doesn't exist" };
       } else if (lastArrival.length > 0) {
         //the journey is complete
         clearInterval(tracking);
-        return "JOURNEY_COMPLETE";
+        return { status: "Journey Complete" };
       } else {
         //the train is undergoing its journey
         status = $(".platint").text();
@@ -65,24 +61,31 @@ export default async function trackTrain(
           .text();
 
         if (!currentStation) {
-          //there is no status meaning it's between two stations
+          //after a refresh, there is no badge on a station ('arriving','approaching' etc)
           if (!previousStation) {
+            //it has no previous 'arrived at' station
             clearInterval(tracking);
-            return `NOT_DEPARTED`;
+            return { status: "Departed" }; //the train hasn't departed yet
           }
-          return `PASS ${previousStation}`; //get next matching class of .location.name
+          //no badge and it has departed a station
+          return { status: "Departed", station: previousStation }; //it's left its previous station but no action on the next yet
         } else {
-          //it's actioning on a platform
-          return `Now ${status} ${currentStation}`;
+          //there is a badge on a station ('arriving','approaching' etc)
+          return { status: status, station: currentStation };
         }
-      } //close else
-      //I want to continuously send updates via console when a change is detected in an element via cheerio
+      }
     })();
-    currentState != previousState
+    //if the refreshed state is different
+    !equal(currentState, previousState)
       ? (() => {
-          console.log(currentState);
+          //emit a new update
+          trainUpdateEmitter.emit("UPDATE", currentState);
+          //set the previous state equal to this one
           previousState = currentState;
         })()
-      : "";
+      : //else do nothing
+        "";
   }, refreshRate);
+  //return the emitter for subscription
+  return trainUpdateEmitter;
 }
