@@ -2,4 +2,6 @@ import trackTrain from "./trackTrain.js";
 import findTrains from "./findTrains.js";
 export default { trackTrain, findTrains };
 
-findTrains("").then((result) => console.log(result));
+trackTrain("P70601").then((emitter) => {
+  emitter.on("UPDATE", (data) => console.log(data));
+});

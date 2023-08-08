@@ -1,1 +1,2 @@
-//html=
+let testHtml = "";
+export default testHtml;

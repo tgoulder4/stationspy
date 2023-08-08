@@ -2,6 +2,7 @@ import cheerio from "cheerio";
 import getCurrentDayTime from "./getDayTime.js";
 import EventEmitter from "events";
 import equal from "deep-equal";
+import testHtml from "../tests/testData/testhtml.js";
 
 /**
  * Returns an emitter promise for live train updates
@@ -14,6 +15,7 @@ export default async function trackTrain(serviceID, refreshRate = 5000) {
   let previousState = "";
   let currentState = "";
   let previousStation = "";
+  let nextStation = "";
   let currentStation = "";
   let html = "";
   let response = "";
@@ -21,6 +23,7 @@ export default async function trackTrain(serviceID, refreshRate = 5000) {
   let lastArrival = "";
   let status = "";
   const tracking = setInterval(async () => {
+    //if process.env.production:
     //fetch rtt
     response = await fetch(
       `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${getCurrentDayTime(
@@ -29,6 +32,12 @@ export default async function trackTrain(serviceID, refreshRate = 5000) {
     );
     //change to html
     html = await response.text();
+    //end process.env.production
+
+    //if dev environment:
+    // html = testHtml
+    //
+
     //load with cheerio for manipulation
     $ = cheerio.load(html);
     //get current state of train as currentState
