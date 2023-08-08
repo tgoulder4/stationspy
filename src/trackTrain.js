@@ -15,7 +15,6 @@ export default async function trackTrain(serviceID, refreshRate = 5000) {
   let currentState = "";
   let previousStation = "";
   let currentStation = "";
-  let nextStation = "";
   let html = "";
   let response = "";
   let $ = "";
@@ -46,20 +45,17 @@ export default async function trackTrain(serviceID, refreshRate = 5000) {
         return { status: "Journey Complete" };
       }
       //the train is undergoing its journey
-      status = $(".platint").text();
-      previousStation = $(".dep.rt.act")
-        .last()
-        .parent()
-        .parent()
-        .find(".name")
-        .text();
-      currentStation = $(".platint").siblings(".name").text();
-      nextStation = $(".arr.exp")
-        .first()
-        .parent()
-        .siblings(".location")
-        .find(".name")
-        .text();
+      status = $(".platint").text() || null;
+      previousStation =
+        $(".dep.rt.act").last().parent().parent().find(".name").text() || null;
+      currentStation = $(".platint").siblings(".name").text() || null;
+      nextStation =
+        $(".arr.exp")
+          .first()
+          .parent()
+          .siblings(".location")
+          .find(".name")
+          .text() || null;
 
       if (!currentStation) {
         //after a refresh, there is no badge on a station ('arriving','approaching' etc)

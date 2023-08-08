@@ -7,7 +7,20 @@ import getCurrentDayTime from "./getDayTime.js";
  * @param {string} stationName Name of the station or station code. E.g. 'WLF' or 'Whittlesford Parkway'
  */
 export default async function findTrains(stationName) {
-  //if stationName is the only parameter,
+  //if stationName is 3 letters, destructure from map
+  if (
+    (await fetch(
+      `https://www.realtimetrains.co.uk/search/handler?location=${stationName}`
+    ).then((res) =>
+      res.text().then((data) => {
+        const $ = cheerio.load(data);
+        return $(".callout.condensed h3").text();
+      })
+    )) == "Cannot find primary location" ||
+    !stationName
+  ) {
+    return "Please enter a valid station code.";
+  }
   const services = [];
   await fetch(
     `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationName}/${getCurrentDayTime(
@@ -32,7 +45,7 @@ export default async function findTrains(stationName) {
           });
         }
       });
-      console.log(services);
     })
   );
+  return services;
 }
