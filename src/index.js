@@ -1,13 +1,10 @@
-import trackTrain from "./trackTrain.js";
-import findTrainsByStation from "./findTrain.js";
-export default { trackTrain, findTrainsByStation };
-const main = async () => {
-  //myTrain must be in an asynchronous atmosphere.
-  const myTrain = await trackTrain("P71733");
-  // on an update,
-  myTrain.on("UPDATE", (currentState) => {
-    //print the update
-    console.log(currentState);
-  });
-};
-main();
+require("dotenv").config();
+const { trackTrain } = require("./trackTrain.js");
+const findTrains = require("./findTrains.js");
+const { atPlatform } = require("../tests/testData/transit/transitData.js");
+
+trackTrain("G55792").then((emitter) => {
+  emitter.on("notificationUpdate", (data) => console.log(data));
+  emitter.on("journeyUpdate", (data) => console.log(data));
+  emitter.on("errorUpdate", (data) => console.log(data));
+});
