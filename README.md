@@ -5,16 +5,6 @@ Get departures at any UK train station & recieve updates on trains throughout th
 ```js
 npm i trainspy
 ```
-## Example
-```js
-import trackTrain from "trainspy";
-
-trackTrain("P71733").then((myTrainTracker) =>
-  myTrainTracker.on("UPDATE", (currentState) => {
-    console.log(currentState);
-  })
-);
-```
 # Get departures
 Departures can be retrived by ```findTrains(stationCode)``` or ```findTrains(stationName)```:
 ```js
@@ -57,4 +47,15 @@ This emits live updates (as JSON) on the train until the journey is complete.
 ```
 ```js
 { status: 'Departed', station: 'Hackney Downs [HAC]' }
+```
+## More examples
+```js
+import trackTrain from "trainspy";
+
+trackTrain("P71733").then((myTrainTracker) =>
+  myTrainTracker.on("UPDATE", (currentState) => {
+    document.getElementByID("status").innerHTML = currentState.status;
+    document.getElementByID("station").innerHTML = currentState.station;
+  })
+);
 ```
