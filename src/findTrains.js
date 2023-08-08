@@ -37,6 +37,9 @@ module.exports = async function findTrains(stationName) {
         if (!service.hasClass("pass")) {
           services.push({
             destination: service.find(".location.d").text(),
+            arrival: {
+              actual: service.find(""),
+            },
             departure: {
               actual: service.find(".real.a").text(),
               scheduled: service.find(".plan.a").text(),

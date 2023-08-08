@@ -1,0 +1,9 @@
+{
+  update_type: 'journey',
+  status: null,
+  station: { name: null, arrival: { actual: '' }, passStation: false },
+  arrival: { scheduled: '', actual: '' },
+  delay: ''
+}
+
+happened when badge disappeared from BMO
