@@ -42,9 +42,7 @@ Can be retrived by ```findTrains(stationCode)``` as shown above.
 ```js
 trackTrain(serviceID, refreshRate)
 ```
-trackTrain() returns a promise (emitter). 
 
-Example of subscribing to this emitter:
 ```js
 trackTrain("L14125").then((emitter) => {
   emitter.on("UPDATE", (update) => {
@@ -52,7 +50,8 @@ trackTrain("L14125").then((emitter) => {
   });
 });
 ```
-which emits live updates (as JSON) on the train until the journey is complete.
+```trackTrain()``` returns a promise - ```emitter```. Subscribe to this emitter as shown above. 
+This emits live updates (as JSON) on the train until the journey is complete.
 ```js
 { status: 'Approaching', station: 'Hackney Downs [HAC]' }
 ```
