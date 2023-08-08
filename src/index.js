@@ -1,7 +1,7 @@
-import trackTrain from "./trackTrain.js";
-import findTrains from "./findTrains.js";
-export default { trackTrain, findTrains };
+const trackTrain = require("./trackTrain.js");
+const findTrains = require("./findTrains.js");
+module.exports = { trackTrain, findTrains };
 
-trackTrain("P70601").then((emitter) => {
+trackTrain("G26139").then((emitter) => {
   emitter.on("UPDATE", (data) => console.log(data));
 });

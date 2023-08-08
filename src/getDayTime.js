@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
-export default function getCurrentDayTime(timeString) {
+const dayjs = require("dayjs");
+module.exports = function getCurrentDayTime(timeString) {
   return dayjs().format(timeString);
-}
+};

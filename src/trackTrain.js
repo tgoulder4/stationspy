@@ -1,15 +1,15 @@
-import cheerio from "cheerio";
-import getCurrentDayTime from "./getDayTime.js";
-import EventEmitter from "events";
-import equal from "deep-equal";
-import testHtml from "../tests/testData/testhtml.js";
+const cheerio = require("cheerio");
+const getCurrentDayTime = require("./getDayTime");
+const EventEmitter = require("events");
+const equal = require("deep-equal");
+const testHtml = require("../tests/testData/testhtml.js");
 
 /**
  * Returns an emitter promise for live train updates
  * @param {string} serviceID
  * @param {number} refreshRate
  */
-export default async function trackTrain(serviceID, refreshRate = 5000) {
+module.exports = async function trackTrain(serviceID, refreshRate = 5000) {
   const trainUpdateEmitter = new EventEmitter();
   //initialise variables
   let previousState = "";
@@ -92,4 +92,4 @@ export default async function trackTrain(serviceID, refreshRate = 5000) {
   }, refreshRate);
   //return the emitter for subscription
   return trainUpdateEmitter;
-}
+};

@@ -1,12 +1,12 @@
-import cheerio from "cheerio";
-import getCurrentDayTime from "./getDayTime.js";
+const cheerio = require("cheerio");
+const getCurrentDayTime = require("./getDayTime");
 //method: present stations
 
 /**
  * Returns an emitter with live train updates
  * @param {string} stationName Name of the station or station code. E.g. 'WLF' or 'Whittlesford Parkway'
  */
-export default async function findTrains(stationName) {
+module.exports = async function findTrains(stationName) {
   //if stationName is 3 letters, destructure from map
   if (
     (await fetch(
@@ -48,4 +48,4 @@ export default async function findTrains(stationName) {
     })
   );
   return services;
-}
+};

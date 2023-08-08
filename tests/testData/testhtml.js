@@ -1,2 +1,2 @@
 let testHtml = "";
-export default testHtml;
+module.exports = testHtml;

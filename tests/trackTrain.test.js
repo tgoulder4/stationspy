@@ -1,2 +1,2 @@
-import { expect, jest, test } from "@jest/globals";
-import trackTrain from "../src/trackTrain";
+const trackTrain = require("../src/trackTrain");
+const { expect, test } = require("@jest/globals");
