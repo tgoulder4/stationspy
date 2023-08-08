@@ -17,11 +17,6 @@ which returns in the following format:
     destination: 'Cambridge',
     departure: { actual: '2259', scheduled: '2259' },
     serviceID: 'L14119'
-  },
-  {
-    destination: 'London Liverpool Street',
-    departure: { actual: '2259½', scheduled: '2259' },
-    serviceID: 'L14140'
   }
 ]
 ```
