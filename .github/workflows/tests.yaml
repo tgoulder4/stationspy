@@ -1,0 +1,8 @@
+name: Testing
+run-name: ${{ github.actor }} is testing the backend
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run test
