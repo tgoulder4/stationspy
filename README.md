@@ -39,8 +39,6 @@ which returns in the following format:
 # Tracking a train
 You first need the service ID.
 Can be retrived by ```findTrains(stationCode)``` as shown above.
-
-## I have the service ID
 ```js
 trackTrain(serviceID, refreshRate)
 ```
