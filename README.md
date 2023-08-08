@@ -9,11 +9,8 @@ npm i trainspy
 ```js
 import trackTrain from "trainspy";
 
-//trackTrain returns an emitter. Call it whatever, I called it myTrain.
 trackTrain("P71733").then((myTrainTracker) =>
-  // if an event labelled "UPDATE" is emitted,
   myTrainTracker.on("UPDATE", (currentState) => {
-  // log the update to the console
     console.log(currentState);
   })
 );
