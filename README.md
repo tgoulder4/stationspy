@@ -20,14 +20,7 @@ Departures can be retrived by ```findTrains(stationCode)``` or ```findTrains(sta
 ```js
 findTrains("WLF") || findTrains("Whittlesford Parkway")
 ```
-
-# Tracking a train
-You first need the service ID.
-Can be retrived by ```findTrains(stationCode)```:
-```js
-findTrains("WLF");
-```
-which returns departures from that station. E.g.:
+which returns in the following format:
 ```js
 [
   {
@@ -42,6 +35,11 @@ which returns departures from that station. E.g.:
   }
 ]
 ```
+
+# Tracking a train
+You first need the service ID.
+Can be retrived by ```findTrains(stationCode)``` as shown above.
+
 ## I have the service ID
 ```js
 trackTrain(serviceID, refreshRate)
