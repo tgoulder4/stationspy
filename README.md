@@ -26,18 +26,18 @@ which returns in the following format:
   {
     destination: 'Cambridge',
     departure: { actual: '2259', scheduled: '2259' },
-    trainID: 'L14119'
+    serviceID: 'L14119'
   },
   {
     destination: 'London Liverpool Street',
     departure: { actual: '2259½', scheduled: '2259' },
-    trainID: 'L14140'
+    serviceID: 'L14140'
   }
 ]
 ```
 
 # Tracking a train
-You first need the service ID.
+You first need the ```serviceID```.
 Can be retrived by ```findTrains(stationCode)``` as shown above.
 ```js
 trackTrain(serviceID, refreshRate)
