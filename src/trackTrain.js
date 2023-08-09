@@ -2,14 +2,13 @@ const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
-
+const { transitData, erronousData } = require("../tests/testData/testData");
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
  * @param {number} timeTillRefresh
- * @param {string} htmlToTest Leave this blank unless testing an RTT page.
  */
-async function trackTrain(serviceID, timeTillRefresh = 5000, htmlToTest) {
+async function trackTrain(serviceID, timeTillRefresh = 5000) {
   let previousState = "";
   let currentState = "";
   if (!serviceID) {
@@ -18,13 +17,8 @@ async function trackTrain(serviceID, timeTillRefresh = 5000, htmlToTest) {
   const trainUpdateEmitter = new EventEmitter();
   //loop here every 5s. 'const loop =' needed for strange js behaviour
   const loop = setInterval(async () => {
-    let $ = "";
-    let html = "";
-    // html = await getHTML(serviceID);
-    serviceID == "testing"
-      ? (html = htmlToTest)
-      : (html = await getHTML(serviceID));
-    $ = cheerio.load(html);
+    let html = await getHTML(serviceID);
+    let $ = cheerio.load(html);
     //get current state of train as currentState
     currentState = await getCurrentState($);
     //check if end of loop
@@ -60,7 +54,7 @@ async function getCurrentState($) {
     //return error update
     return {
       body: {
-        error: "Journey doesn't exist.",
+        error: "Not found",
       },
       hidden: {
         update_type: "error",
