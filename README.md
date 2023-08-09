@@ -29,13 +29,14 @@ trackTrain(serviceID, refreshRate)
 ```
 
 ```js
-trackTrain("L14125").then((emitter) => {
-  emitter.on("UPDATE", (update) => {
-    console.log(update) //replace with your logic in terms of the update
+trackTrain("P70052").then((emitter) => {
+  emitter.on("journeyUpdate", (data) => {
+    //your code for journey updates here
   });
+  emitter.on("errorUpdate", (data) => console.log(data));
 });
 ```
-```trackTrain()``` returns a promise - ```emitter```. Subscribe to this emitter as shown above. 
+```trackTrain()``` returns a promise - ```emitter```. Subscribe as shown above. 
 This emits live updates (as JSON) on the train until the journey is complete.
 ```js
 {
