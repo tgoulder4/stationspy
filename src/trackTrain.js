@@ -7,9 +7,9 @@ const { transitData } = require("../tests/testData/testhtml.js");
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
- * @param {number} refreshRate
+ * @param {number} timeTillRefresh
  */
-async function trackTrain(serviceID, refreshRate = 5000) {
+async function trackTrain(serviceID, timeTillRefresh = 5000) {
   let previousState = "";
   let currentState = "";
   if (!serviceID) {
@@ -35,7 +35,7 @@ async function trackTrain(serviceID, refreshRate = 5000) {
       emitUpdate(trainUpdateEmitter, currentState);
       previousState = currentState;
     }
-  }, refreshRate);
+  }, timeTillRefresh);
   //return the emitter for subscription
   return trainUpdateEmitter;
 }
@@ -109,7 +109,6 @@ async function getCurrentState($) {
   let destination = { name: $(".name").last().text().slice(0, -6) };
   let previousDeparture = "";
   if ($(".dep.act").last().length != 0) {
-    console.log($(".dep.act").last().text());
     const stationString = $(".dep.act")
       .last()
       .parent()
@@ -117,7 +116,7 @@ async function getCurrentState($) {
       .find(".name")
       .text();
     const match = stationString.match(/[A-Z]{3}/g);
-    const code = match[0];
+    const code = match;
     const name = stationString.slice(0, -6);
     previousDeparture = stationObject(
       //name of station
