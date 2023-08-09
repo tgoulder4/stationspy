@@ -1,4 +1,9 @@
-const { getCurrentState, getHTML } = require("../src/trackTrain");
+const {
+  getCurrentState,
+  getHTML,
+  getStationNameAndCode,
+  stateObject,
+} = require("../src/trackTrain");
 const { expect, describe, it, test } = require("@jest/globals");
 const { transitData, erronousData } = require("./testData/testData");
 const cheerio = require("cheerio");
@@ -26,23 +31,72 @@ describe("Erronous", () => {
   test("service cancelled", async () => {});
 });
 describe("Normal", () => {
-  test("ActArr value for left stopping station", async () => {
+  test("Departed status on stopping station", async () => {
     html = await transitData.leftPickupStation();
     $ = cheerio.load(html);
-    expect(await getCurrentState($)).toStrictEqual({
-      body: {
-        status: "Departed",
-        station: {
+    expect(await getCurrentState($)).toStrictEqual(
+      stateObject(
+        "Departed",
+        {
           name: "Small Heath",
-          code: "SMA",
+          code: "[SMA]",
           arrival: { actual: "1549¾" },
           departure: { actual: "1552" },
           stopsHere: true,
         },
-        destination: "Worcester Foregate Street",
-        delay: "-1",
-      },
-      hidden: { action: "continue", update_type: "journey" },
+        { name: "Worcester Foregate Street", code: "[WOF]" },
+        "-1",
+        "journey",
+        "continue"
+      )
+    );
+  });
+  test("Passed status on non-stopping station", async () => {
+    html = await transitData.passedPassStation();
+    $ = cheerio.load(html);
+    expect(await getCurrentState($)).toStrictEqual(
+      stateObject(
+        "Passed",
+        {
+          name: "Proof House Jn",
+          code: "[XOZ]",
+          arrival: { actual: null },
+          departure: { actual: "2236¾" },
+          stopsHere: false,
+        },
+        { name: "Wolverhampton Cs", code: null },
+        "+1",
+        "journey",
+        "continue"
+      )
+    );
+  });
+  test("Reached destination", async () => {
+    html = await transitData.reachedDestination();
+    $ = cheerio.load(html);
+    expect(await getCurrentState($)).toStrictEqual(
+      stateObject(
+        "Reached destination",
+        {
+          name: "Wolverhampton Cs",
+          code: null,
+          arrival: { actual: "2309" },
+          departure: { actual: null },
+          stopsHere: true,
+        },
+        { name: "Wolverhampton Cs", code: null },
+        "-4",
+        "journey",
+        "end"
+      )
+    );
+  });
+});
+describe("GetStationNameCode", () => {
+  test("Normal", () => {
+    expect(getStationNameAndCode("Wolverhampton [WVH]")).toStrictEqual({
+      name: "Wolverhampton",
+      code: "[WVH]",
     });
   });
 });

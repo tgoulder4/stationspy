@@ -1,5 +1,17 @@
 const fs = require("node:fs").promises;
 const { resolve } = require("node:path");
+const reachedDestination = async () => {
+  // export the html from the test state
+  try {
+    const filePath = resolve(
+      "./tests/testData/transit/ReachedDestination.html"
+    );
+    const html = await fs.readFile(filePath, "utf-8");
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
 const atPlatform = async () => {
   // export the html from the test state
   try {
@@ -52,6 +64,16 @@ const approachingAStation = async () => {
     return error;
   }
 };
+const passedPassStation = async () => {
+  // export the html from the test state
+  try {
+    const filePath = resolve("./tests/testData/transit/PassedPassStation.html");
+    const html = await fs.readFile(filePath, "utf-8");
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
 const arriving = async () => {
   // export the html from the test state
   try {
@@ -68,6 +90,8 @@ const transitData = {
   approachingAPass,
   approachingAStation,
   arriving,
+  passedPassStation,
+  reachedDestination,
 };
 const erronousData = {
   journeyNotFound,

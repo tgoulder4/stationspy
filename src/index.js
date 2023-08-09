@@ -3,7 +3,7 @@ const { trackTrain } = require("./trackTrain.js");
 const findTrains = require("./findTrains.js");
 const { transitData } = require("../tests/testData/testData.js");
 
-trackTrain("placeholder").then((emitter) => {
+trackTrain("P69962").then((emitter) => {
   emitter.on("journeyUpdate", (update) => console.log(update));
   emitter.on("errorUpdate", (data) => console.log(data));
 });

@@ -76,7 +76,11 @@ async function getCurrentState($) {
       },
     };
   }
-  //mostRecentArrival declared for change
+  let destination = {
+    name: getStationNameAndCode($(".location").last().text()).name || null,
+    code: getStationNameAndCode($(".location").last().text()).code || null,
+  };
+
   let mostRecentArrival = null;
   //if there is a last actual arrival,
   if ($(".arr.act").last().length != 0) {
@@ -97,27 +101,55 @@ async function getCurrentState($) {
       $(".arr.act").last().siblings(".pass").length == 0
     );
   }
-  let destination = { name: $(".name").last().text().slice(0, -6) };
+  //delay is last .delay.rt
+  let delay =
+    $(".delay.rt").last().text() ||
+    $(".delay.late").last().text() ||
+    $(".delay.early").last().text() ||
+    "unknown";
   //if journey complete
-  if (mostRecentArrival.name == destination.name) {
-    //return journey update
-    return stateObject(
-      "Reached destination",
-      mostRecentArrival,
-      null,
-      destination,
-      delay,
-      "journey",
-      "end"
+  if (mostRecentArrival) {
+    if (mostRecentArrival.name == destination.name) {
+      //return journey update
+      return stateObject(
+        "Reached destination",
+        mostRecentArrival,
+        // null, //nextStation
+        destination,
+        delay,
+        "journey",
+        "end"
+      );
+    }
+  }
+  //mostRecentArrival declared for change
+  let mostRecentDeparture = null;
+  //define mostRecentDeparture
+  if ($(".dep.act").last().length != 0) {
+    const { name, code } = getStationNameAndCode(
+      $(".dep.act").last().parent().parent().find(".name").text()
+    );
+    mostRecentDeparture = stationObject(
+      //name of station
+      name || null,
+      //code of station
+      code || null,
+      //arrival of station
+      { actual: $(".arr.act").last().text() || null },
+      //departure of station
+      { actual: $(".dep.act").last().text() },
+      //stopsHere
+      $(".dep.act").last().siblings(".pass").length == 0
     );
   }
+
   //if there is not a most recent arrival
-  if (!mostRecentArrival) {
+  if (!mostRecentDeparture) {
     //not yet departed
     return stateObject(
       "Not departed",
       nextStations[0],
-      nextStations,
+      // nextStations,
       destination,
       delay,
       "journey",
@@ -125,12 +157,6 @@ async function getCurrentState($) {
     );
   }
   //PRTEV DEPARTURE WAS HERE
-  //delay is last .delay.rt
-  let delay =
-    $(".delay.rt").last().text() ||
-    $(".delay.late").last().text() ||
-    $(".delay.early").last().text() ||
-    0;
   //nextStation is next passenger station
   const nextStations = [];
   $(".arr.exp").each((i, el) => {
@@ -178,38 +204,20 @@ async function getCurrentState($) {
     return stateObject(
       status,
       currentStation,
-      nextStations,
+      // nextStations,
       destination,
       delay,
       "journey",
       "continue"
     );
   }
-  let previousDeparture = null;
-  //define previousDeparture
-  if ($(".dep.act").last().length != 0) {
-    const { name, code } = getStationNameAndCode(
-      $(".dep.act").last().parent().parent().find(".name").text()
-    );
-    previousDeparture = stationObject(
-      //name of station
-      name || null,
-      //code of station
-      code || null,
-      //arrival of station
-      { actual: $(".arr.act").last().text() || null },
-      //departure of station
-      { actual: $(".dep.act").last().text() },
-      //stopsHere
-      $(".dep.act").last().siblings(".pass").length == 0
-    );
-  }
+
   //if !badge and stopped there
-  if (!status && previousDeparture.stopsHere) {
+  if (!status && mostRecentDeparture.stopsHere) {
     return stateObject(
       "Departed",
-      previousDeparture,
-      nextStations,
+      mostRecentDeparture,
+      // nextStations,
       destination,
       delay,
       "journey",
@@ -217,11 +225,11 @@ async function getCurrentState($) {
     );
   }
   //if !badge & !stopped there
-  if (!status && !previousDeparture.stopsHere) {
+  if (!status && !mostRecentDeparture.stopsHere) {
     return stateObject(
       "Passed",
-      previousDeparture,
-      nextStations,
+      mostRecentDeparture,
+      // nextStations,
       destination,
       delay,
       "journey",
@@ -240,10 +248,10 @@ function stationObject(name, code, arrival, departure, stopsHere) {
   };
 }
 function getStationNameAndCode(stationString) {
-  const match = stationString.match(/[A-Z]{3}/g);
+  const match = stationString.match(/^([\w\s]+)(\[\w+\])?$/);
   return {
-    code: match[0],
-    name: stationString.slice(0, -6),
+    name: match[1].trimEnd(),
+    code: match[2],
   };
 }
 
@@ -261,7 +269,7 @@ function getStationNameAndCode(stationString) {
 function stateObject(
   status,
   station,
-  nextStations,
+  // nextStations,
   destination,
   delay,
   update_type,
@@ -286,4 +294,11 @@ function emitUpdate(emitter, stateUpdate) {
   //if it's a journey update
   emitter.emit(`${stateUpdate.hidden.update_type}Update`, stateUpdate.body);
 }
-module.exports = { trackTrain, getHTML, getCurrentState, emitUpdate };
+module.exports = {
+  trackTrain,
+  getHTML,
+  getCurrentState,
+  getStationNameAndCode,
+  emitUpdate,
+  stateObject,
+};
