@@ -6,9 +6,10 @@ Get departures at any UK train station & recieve updates on trains throughout th
 npm i trainspy
 ```
 # Get departures
-Departures can be retrived by ```findTrains(stationCode)``` or ```findTrains(stationName)```:
+Departures can be retrieved by ```stationCode``` or ```stationName```:
 ```js
-findTrains("WLF") || findTrains("Whittlesford Parkway")
+const x = findTrains("WLF")
+const y = findTrains("Whittlesford Parkway") //same result as x
 ```
 which returns in the following format:
 ```js
@@ -22,11 +23,12 @@ which returns in the following format:
 ```
 
 # Tracking a train
+```js
+trackTrain(serviceID, timeTillRefresh?) //minimum timeTillRefresh of 5 seconds
+```
+
 You first need the ```serviceID```.
 Can be retrived by ```findTrains(stationCode)``` as shown above.
-```js
-trackTrain(serviceID, refreshRate)
-```
 
 ```js
 trackTrain("P70052").then((emitter) => {
@@ -52,14 +54,43 @@ This emits live updates (as JSON) on the train until the journey is complete.
   delay: '+3'
 }
 ```
+| Status  | Explanation |
+| ------------- | ------------- |
+| Passed  | Train just passed this non-stopping station  |
+| Approaching  | Train is now approaching this station  |
+| Arriving  | Train is now arriving at this stopping station  |
+| At platform  | Train is now at a platform of this stopping station  |
+| Departed  | Train just departed this stopping station  |
+
 ## More examples
+### Track the next service from London to Manchester
+(Provided this service departs in the next hour)
 ```js
-import trackTrain from "trainspy";
+import {trackTrain, findTrains} from "trainspy";
+
+const services = await findTrains("EUS");
+services.forEach((service) => {
+  if (service.destination == "Manchester Piccadilly") {
+    trackTrain(service.serviceID).then((emitter) => {
+      emitter.on("journeyUpdate", (update) => console.log(update));
+      emitter.on("errorUpdate", (data) => console.log(data));
+    });
+  }
+});
+```
+
+
+### Change html content
+```js
+import {trackTrain} from "trainspy";
 
 trackTrain("P71733").then((myTrainTracker) =>
   myTrainTracker.on("journeyUpdate", (currentState) => {
     document.getElementByID("status").innerHTML = currentState.status;
     document.getElementByID("station").innerHTML = currentState.station.name;
-  })
+  });
+  myTrainTracker.on("errorUpdate",(error)=>{
+    console.log(error)
+  }
 );
 ```
