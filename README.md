@@ -38,10 +38,18 @@ trackTrain("L14125").then((emitter) => {
 ```trackTrain()``` returns a promise - ```emitter```. Subscribe to this emitter as shown above. 
 This emits live updates (as JSON) on the train until the journey is complete.
 ```js
-{ status: 'Approaching', station: 'Hackney Downs [HAC]' }
-```
-```js
-{ status: 'Departed', station: 'Hackney Downs [HAC]' }
+{
+  status: 'Approaching',
+  station: {
+    name: 'Rugeley Town',
+    code: [ 'RGT' ],
+    arrival: { actual: '0615½' },
+    departure: { actual: null },
+    stopsHere: true
+  },
+  destination: 'Rugeley Trent Valley',
+  delay: '+3'
+}
 ```
 ## More examples
 ```js
