@@ -90,7 +90,7 @@ async function getCurrentState($) {
       .find(".name")
       .text();
     const match = stationString.match(/[A-Z]{3}/g);
-    const code = match[0];
+    const code = match;
     const name = stationString.slice(0, -6);
     lastActualArrival = stationObject(
       //name of station
@@ -111,10 +111,14 @@ async function getCurrentState($) {
   // console.log(`arr act: ${$(".arr.act").text()}`);
   let previousDeparture = "";
   if ($(".dep.act").length != 0) {
-    const stationString =
-      $(".dep.act").last().parent().parent().find(".name").text() || null;
+    const stationString = $(".dep.act")
+      .last()
+      .parent()
+      .parent()
+      .find(".name")
+      .text();
     const match = stationString.match(/[A-Z]{3}/g);
-    const code = match[0];
+    const code = match;
     const name = stationString.slice(0, -6);
     previousDeparture = stationObject(
       //name of station
@@ -144,7 +148,7 @@ async function getCurrentState($) {
       .find(".name")
       .text();
     const match = stationString.match(/[A-Z]{3}/g);
-    const code = match[0];
+    const code = match;
     const name = stationString.slice(0, -6);
     nextStations.push(
       stationObject(
@@ -187,7 +191,7 @@ async function getCurrentState($) {
   if (status) {
     const stationString = $(".platint").siblings(".name").text();
     const match = stationString.match(/[A-Z]{3}/g);
-    const code = match[0];
+    const code = match;
     const name = stationString.slice(0, -6);
     let currentStation = stationObject(
       //name of station
