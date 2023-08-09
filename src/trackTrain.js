@@ -16,12 +16,12 @@ async function trackTrain(serviceID, refreshRate = 5000) {
     return "Enter a service ID.";
   }
   const trainUpdateEmitter = new EventEmitter();
-  //loop here every 5s. 'tracking' needed for strange js behaviour
+  //loop here every 5s. 'const loop =' needed for strange js behaviour
   const loop = setInterval(async () => {
     let $ = "";
     let html = "";
     html = await getHTML(serviceID);
-    // html = await transitData.arriving();
+    //FOR TESTS: html = await transitData.arriving();
     $ = cheerio.load(html);
     //get current state of train as currentState
     currentState = await getCurrentState($);
@@ -107,8 +107,6 @@ async function getCurrentState($) {
   }
 
   let destination = { name: $(".name").last().text().slice(0, -6) };
-  // console.log(`destination: ${destination.name}`);
-  // console.log(`arr act: ${$(".arr.act").text()}`);
   let previousDeparture = "";
   if ($(".dep.act").last().length != 0) {
     console.log($(".dep.act").last().text());
