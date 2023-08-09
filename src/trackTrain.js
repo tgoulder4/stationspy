@@ -82,7 +82,7 @@ async function getCurrentState($) {
   //get last .realtime, holds value if contains arr rt act
   //USE OF .last() NOT WORKING
   let lastActualArrival = "";
-  if ($(".arr.act").length != 0) {
+  if ($(".arr.act").last().length != 0) {
     const stationString = $(".arr.act")
       .last()
       .parent()
@@ -110,7 +110,8 @@ async function getCurrentState($) {
   // console.log(`destination: ${destination.name}`);
   // console.log(`arr act: ${$(".arr.act").text()}`);
   let previousDeparture = "";
-  if ($(".dep.act").length != 0) {
+  if ($(".dep.act").last().length != 0) {
+    console.log($(".dep.act").last().text());
     const stationString = $(".dep.act")
       .last()
       .parent()
@@ -118,7 +119,7 @@ async function getCurrentState($) {
       .find(".name")
       .text();
     const match = stationString.match(/[A-Z]{3}/g);
-    const code = match;
+    const code = match[0];
     const name = stationString.slice(0, -6);
     previousDeparture = stationObject(
       //name of station
@@ -278,7 +279,7 @@ function stateObject(
     body: {
       status: status,
       station: station,
-      nextStations: nextStations,
+      // nextStations: nextStations,
       destination: destination.name,
       delay: delay,
     },
