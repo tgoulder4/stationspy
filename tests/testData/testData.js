@@ -10,6 +10,16 @@ const atPlatform = async () => {
     return error;
   }
 };
+const journeyNotFound = async () => {
+  // export the html from the test state
+  try {
+    const filePath = resolve("./tests/testData/erronous/404NotFound.html");
+    const html = await fs.readFile(filePath, "utf-8");
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
 const leftPickupStation = async () => {
   // export the html from the test state
   try {
@@ -52,10 +62,17 @@ const arriving = async () => {
     return error;
   }
 };
-module.exports = {
+const transitData = {
   atPlatform,
   leftPickupStation,
   approachingAPass,
   approachingAStation,
   arriving,
+};
+const erronousData = {
+  journeyNotFound,
+};
+module.exports = {
+  transitData,
+  erronousData,
 };
