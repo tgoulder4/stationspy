@@ -57,9 +57,9 @@ This emits live updates (as JSON) on the train until the journey is complete.
 import trackTrain from "trainspy";
 
 trackTrain("P71733").then((myTrainTracker) =>
-  myTrainTracker.on("UPDATE", (currentState) => {
+  myTrainTracker.on("journeyUpdate", (currentState) => {
     document.getElementByID("status").innerHTML = currentState.status;
-    document.getElementByID("station").innerHTML = currentState.station;
+    document.getElementByID("station").innerHTML = currentState.station.name;
   })
 );
 ```
