@@ -101,15 +101,32 @@ function getCurrentState($) {
   if (status) {
     let currentStation = getCurrentStation();
     // console.log(`CurrentStation: ${currentStation}`);
-    return stateObject(
-      status,
-      currentStation,
-      // nextStations,
-      destination,
-      delay,
-      "journey",
-      "continue"
-    );
+    if (currentStation) {
+      //if stops here
+      if (currentStation.stopsHere) {
+        //it's always 'approaching'
+        return stateObject(
+          status,
+          currentStation,
+          // nextStations,
+          destination,
+          delay,
+          "journey",
+          "continue"
+        );
+      }
+      if (!currentStation.stopsHere) {
+        return stateObject(
+          "Passing",
+          currentStation,
+          // nextStations,
+          destination,
+          delay,
+          "journey",
+          "continue"
+        );
+      }
+    }
   }
   // console.log(
   //   `Destination.name: ${destination.name}, Destination.code: ${destination.code}`
@@ -117,11 +134,14 @@ function getCurrentState($) {
 
   let origin = {
     name:
-      getStationNameAndCode($(".location").find(".name").first().text()).name ||
-      null,
+      //first station with applicable rt info
+      getStationNameAndCode(
+        $(".dep.exp").first().parent().parent().find(".name").text()
+      ).name || null,
     code:
-      getStationNameAndCode($(".location").find(".name").first().text()).code ||
-      null,
+      getStationNameAndCode(
+        $(".dep.exp").first().parent().parent().find(".name").text()
+      ).code || null,
   };
   //last actual arrival
   let mostRecentArrival = getMostRecentArrival();
@@ -142,7 +162,10 @@ function getCurrentState($) {
         "end"
       );
     }
-    if (!status && mostRecentArrival.departure.actual == null) {
+    if (
+      mostRecentArrival.arrival.actual &&
+      !mostRecentArrival.departure.actual
+    ) {
       return stateObject(
         "At platform",
         mostRecentArrival,
@@ -154,20 +177,11 @@ function getCurrentState($) {
       );
     }
   }
+
   let mostRecentDeparture = getMostRecentDeparture();
   // console.log(`mostRecentDeparture: ${mostRecentDeparture}`);
 
   //a most recent arrival doesn't exist
-  if (!mostRecentDeparture)
-    return stateObject(
-      "Not departed",
-      origin,
-      // nextStations,
-      destination,
-      delay,
-      "journey",
-      "continue"
-    );
 
   if (mostRecentDeparture) {
     //if stopped there
@@ -181,7 +195,8 @@ function getCurrentState($) {
         "journey",
         "continue"
       );
-    } else {
+    }
+    if (!mostRecentDeparture.stopsHere) {
       return stateObject(
         "Passed",
         mostRecentDeparture,
@@ -192,6 +207,17 @@ function getCurrentState($) {
         "continue"
       );
     }
+  }
+  if (!mostRecentDeparture) {
+    return stateObject(
+      "Not departed",
+      origin,
+      // nextStations,
+      destination,
+      delay,
+      "journey",
+      "continue"
+    );
   }
   function getStatus() {
     return $(".platint").text() || null;
