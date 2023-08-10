@@ -5,7 +5,7 @@ Get departures at any UK train station & recieve updates on trains throughout th
 ```js
 npm i trainspy
 ```
-# Get departures
+# Find trains by station
 Departures can be retrieved by ```stationCode``` or ```stationName```:
 ```js
 const x = findTrains("WLF")
