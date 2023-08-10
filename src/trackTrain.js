@@ -323,7 +323,7 @@ function stationObject(name, code, arrival, departure, stopsHere) {
 function getStationNameAndCode(stationString) {
   const match = stationString.match(/^(.+?)(?:\s(\[\w+\]))?$/);
   if (!match) {
-    console.error("Failed to match station string:", stationString);
+    // console.error("Failed to match station string:", stationString);
     return { name: null, code: null };
   }
   //regex is correct
