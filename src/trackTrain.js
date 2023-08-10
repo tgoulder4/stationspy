@@ -142,6 +142,17 @@ function getCurrentState($) {
         "end"
       );
     }
+    if (!status && mostRecentArrival.departure.actual == null) {
+      return stateObject(
+        "At platform",
+        mostRecentArrival,
+        // nextStations,
+        destination,
+        delay,
+        "journey",
+        "continue"
+      );
+    }
   }
   let mostRecentDeparture = getMostRecentDeparture();
   // console.log(`mostRecentDeparture: ${mostRecentDeparture}`);
@@ -198,12 +209,12 @@ function getCurrentState($) {
       //arrival of station
       {
         actual: elementObj.find(".arr.rt.act").text() || null,
-        scheduled: elementObj.find(".arr.exp").text() || null,
+        scheduled: elementObj.find(".wtt .arr").text() || null,
       },
       //departure of station
       {
         actual: elementObj.find(".dep.rt.act").text() || null,
-        scheduled: elementObj.find(".dep.exp").text() || null,
+        scheduled: elementObj.find(".wtt .dep").text() || null,
       },
       //stopsHere
       elementObj.find(".pass").length == 0
@@ -223,12 +234,14 @@ function getCurrentState($) {
         //arrival of station
         {
           actual: elementObj.siblings(".arr.act").text() || null,
-          scheduled: elementObj.siblings(".arr.exp").text() || null,
+          scheduled:
+            elementObj.parent().parent().find(".wtt .arr").text() || null,
         },
         //departure of station
         {
           actual: elementObj.text() || null,
-          scheduled: elementObj.siblings(".arr.act").text() || null,
+          scheduled:
+            elementObj.parent().parent().find(".wtt .dep").text() || null,
         },
         //stopsHere
         elementObj.siblings(".pass").length == 0
@@ -254,12 +267,14 @@ function getCurrentState($) {
         //arrival of station
         {
           actual: elementObj.text() || null,
-          scheduled: elementObj.siblings(".arr.exp").text() || null,
+          scheduled:
+            elementObj.parent().parent().find(".wtt .arr").text() || null,
         },
         //departure of station
         {
           actual: elementObj.siblings(".dep.act").text() || null,
-          scheduled: elementObj.siblings(".dep.exp").text() || null,
+          scheduled:
+            elementObj.parent().parent().find(".wtt .dep").text() || null,
         },
         //stopsHere
         elementObj.siblings(".pass").length == 0
