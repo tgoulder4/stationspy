@@ -18,11 +18,8 @@ async function trackTrain(serviceID, timeTillRefresh = 5000) {
   //loop here every 5s. 'const loop =' needed for strange js behaviour
   const date = getCurrentDayTime("YYYY-MM-DD");
   const loop = setInterval(async () => {
-    // let html = await getHTML(serviceID, date);
-    const response = await fetch(
-      "https://tgoulder4.github.io/tests/trainspyTests/transit/PassUnknownDelay.html"
-    );
-    const html = await response.text();
+    let html = await getHTML(serviceID, date);
+
     let $ = cheerio.load(html);
     //get current state of train as currentState
     currentState = getCurrentState($);
