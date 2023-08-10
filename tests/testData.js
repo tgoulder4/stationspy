@@ -1,10 +1,10 @@
-const fs = require("node:fs").promises;
-const { resolve } = require("node:path");
 const reachedDestination = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/transit/ReachedDestination.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/ReachedDestination.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
@@ -13,8 +13,10 @@ const reachedDestination = async () => {
 const atPlatform = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/transit/1atPlatform.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/1atPlatform.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
@@ -23,18 +25,34 @@ const atPlatform = async () => {
 const journeyNotFound = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/erronous/404NotFound.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/erronous/404NotFound.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
   }
 };
-const leftPickupStation = async () => {
+const serviceCancelled = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/transit/1_5departed.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/erronous/serviceCancelled.html"
+    );
+    const html = await response.text();
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
+const departedStoppingStation = async () => {
+  // export the html from the test state
+  try {
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/1_5departed.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
@@ -43,8 +61,22 @@ const leftPickupStation = async () => {
 const approachingAPass = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/transit/2approachingpass.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/2approachingpass.html"
+    );
+    const html = await response.text();
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
+const passUnknownDelay = async () => {
+  // export the html from the test state
+  try {
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/PassUnknownDelay.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
@@ -53,8 +85,10 @@ const approachingAPass = async () => {
 const approachingAStation = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/transit/3approachingstation.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/3approachingstation.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
@@ -63,8 +97,10 @@ const approachingAStation = async () => {
 const passedPassStation = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/transit/PassedPassStation.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/PassedPassStation.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
@@ -73,8 +109,10 @@ const passedPassStation = async () => {
 const arriving = async () => {
   // export the html from the test state
   try {
-    const filePath = resolve("./testHTML/transit/3arriving.html");
-    const html = await fs.readFile(filePath, "utf-8");
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/3arriving.html"
+    );
+    const html = await response.text();
     return html;
   } catch (error) {
     return error;
@@ -82,15 +120,17 @@ const arriving = async () => {
 };
 const transitData = {
   atPlatform,
-  leftPickupStation,
+  departedStoppingStation,
   approachingAPass,
   approachingAStation,
   arriving,
   passedPassStation,
   reachedDestination,
+  passUnknownDelay,
 };
 const erronousData = {
   journeyNotFound,
+  serviceCancelled,
 };
 module.exports = {
   transitData,

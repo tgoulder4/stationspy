@@ -2,6 +2,7 @@ const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
+const { platform } = require("os");
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
@@ -15,8 +16,13 @@ async function trackTrain(serviceID, timeTillRefresh = 5000) {
   }
   const trainUpdateEmitter = new EventEmitter();
   //loop here every 5s. 'const loop =' needed for strange js behaviour
+  const date = getCurrentDayTime("YYYY-MM-DD");
   const loop = setInterval(async () => {
-    let html = await getHTML(serviceID);
+    // let html = await getHTML(serviceID, date);
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/PassUnknownDelay.html"
+    );
+    const html = await response.text();
     let $ = cheerio.load(html);
     //get current state of train as currentState
     currentState = getCurrentState($);
@@ -35,12 +41,10 @@ async function trackTrain(serviceID, timeTillRefresh = 5000) {
   return trainUpdateEmitter;
 }
 
-async function getHTML(serviceID) {
+async function getHTML(serviceID, date) {
   //get real data
   let response = await fetch(
-    `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${getCurrentDayTime(
-      "YYYY-MM-DD"
-    )}/detailed`
+    `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`
   );
   // console.log(
   //   `Link followed: https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${getCurrentDayTime(
@@ -56,29 +60,15 @@ function getCurrentState($) {
   //service not found
   if ($(".info h3").text() == "Not found") {
     //return error update
-    return {
-      body: {
-        error: "Not found",
-      },
-      hidden: {
-        update_type: "error",
-        action: "end",
-      },
-    };
+    return errorObject("Not found", "Please enter a valid station code.");
   }
   //train is cancelled
-  if ($(".callout.alert h4").text().length) {
+  if ($(".callout h4").text().length) {
     //return error update
-    return {
-      body: {
-        error: $(".callout.alert h4").text(),
-        details: $(".callout.alert p").text(),
-      },
-      hidden: {
-        update_type: "error",
-        action: "end",
-      },
-    };
+    return errorObject(
+      "This service is cancelled.",
+      $(".callout p").text() || null
+    );
   }
   //delay
   const delaysWithText = $(".delay").filter(function () {
@@ -87,13 +77,15 @@ function getCurrentState($) {
 
   const delay =
     delaysWithText.last().text() == "Dly"
-      ? "unknown"
-      : delaysWithText.last().text() || "unknown";
+      ? null
+      : delaysWithText.last().text() || null;
   let destination = {
-    name: getStationNameAndCode($(".location").find(".name").last().text())
-      .name,
-    code: getStationNameAndCode($(".location").find(".name").last().text())
-      .code,
+    name:
+      getStationNameAndCode($(".location").find(".name").last().text()).name ||
+      null,
+    code:
+      getStationNameAndCode($(".location").find(".name").last().text()).code ||
+      null,
   };
   let status = getStatus();
   // console.log(`Status: ${status}`);
@@ -144,17 +136,17 @@ function getCurrentState($) {
       ).code || null,
   };
   //last actual arrival
-  let mostRecentArrival = getMostRecentArrival();
-  // console.log(`mostRecentArrival: ${mostRecentArrival}`);
+  let stationArrived = getStationArrived();
+  // console.log(`stationArrived: ${stationArrived}`);
 
   //if a most recent arrival exists,
-  if (mostRecentArrival) {
+  if (stationArrived) {
     //and journey complete return reached destination
-    if (mostRecentArrival.name == destination.name) {
+    if (stationArrived.name == destination.name) {
       //return journey update
       return stateObject(
         "Reached destination",
-        mostRecentArrival,
+        stationArrived,
         // null, //nextStation
         destination,
         delay,
@@ -162,13 +154,10 @@ function getCurrentState($) {
         "end"
       );
     }
-    if (
-      mostRecentArrival.arrival.actual &&
-      !mostRecentArrival.departure.actual
-    ) {
+    if (stationArrived.arrival.actual && !stationArrived.departure.actual) {
       return stateObject(
         "At platform",
-        mostRecentArrival,
+        stationArrived,
         // nextStations,
         destination,
         delay,
@@ -178,17 +167,15 @@ function getCurrentState($) {
     }
   }
 
-  let mostRecentDeparture = getMostRecentDeparture();
-  // console.log(`mostRecentDeparture: ${mostRecentDeparture}`);
+  let stationDeparted = getStationDeparted();
+  // console.log(`stationDeparted: ${stationDeparted}`);
 
-  //a most recent arrival doesn't exist
-
-  if (mostRecentDeparture) {
+  if (stationDeparted) {
     //if stopped there
-    if (mostRecentDeparture.stopsHere) {
+    if (stationDeparted.stopsHere) {
       return stateObject(
         "Departed",
-        mostRecentDeparture,
+        stationDeparted,
         // nextStations,
         destination,
         delay,
@@ -196,10 +183,10 @@ function getCurrentState($) {
         "continue"
       );
     }
-    if (!mostRecentDeparture.stopsHere) {
+    if (!stationDeparted.stopsHere) {
       return stateObject(
         "Passed",
-        mostRecentDeparture,
+        stationDeparted,
         // nextStations,
         destination,
         delay,
@@ -208,7 +195,7 @@ function getCurrentState($) {
       );
     }
   }
-  if (!mostRecentDeparture) {
+  if (!stationDeparted) {
     return stateObject(
       "Not departed",
       origin,
@@ -219,6 +206,7 @@ function getCurrentState($) {
       "continue"
     );
   }
+  return "There was an error finding the train's current status.";
   function getStatus() {
     return $(".platint").text() || null;
   }
@@ -237,6 +225,11 @@ function getCurrentState($) {
         actual: elementObj.find(".arr.rt.act").text() || null,
         scheduled: elementObj.find(".wtt .arr").text() || null,
       },
+      //platform
+      {
+        actual: elementObj.find(".platform.act").text() || null,
+        scheduled: elementObj.find(".platform.exp").text() || null,
+      },
       //departure of station
       {
         actual: elementObj.find(".dep.rt.act").text() || null,
@@ -246,7 +239,7 @@ function getCurrentState($) {
       elementObj.find(".pass").length == 0
     );
   }
-  function getMostRecentDeparture() {
+  function getStationDeparted() {
     let elementObj = $(".dep.act").last();
     if (elementObj.length != 0) {
       const { name, code } = getStationNameAndCode(
@@ -263,6 +256,12 @@ function getCurrentState($) {
           scheduled:
             elementObj.parent().parent().find(".wtt .arr").text() || null,
         },
+        //platform
+        {
+          actual: elementObj.parent().siblings(".platform.act").text() || null,
+          scheduled:
+            elementObj.parent().siblings(".platform.exp").text() || null,
+        },
         //departure of station
         {
           actual: elementObj.text() || null,
@@ -276,7 +275,7 @@ function getCurrentState($) {
       return null;
     }
   }
-  function getMostRecentArrival() {
+  function getStationArrived() {
     // console.log(`.arr.act: ${$(".arr.act")}`);
     let elementObj = $(".arr.act").last();
     //if last actual arrival exists
@@ -296,6 +295,12 @@ function getCurrentState($) {
           scheduled:
             elementObj.parent().parent().find(".wtt .arr").text() || null,
         },
+        //platform
+        {
+          actual: elementObj.parent().siblings(".platform.act").text() || null,
+          scheduled:
+            elementObj.parent().siblings(".platform.exp").text() || null,
+        },
         //departure of station
         {
           actual: elementObj.siblings(".dep.act").text() || null,
@@ -311,11 +316,12 @@ function getCurrentState($) {
   }
 }
 
-function stationObject(name, code, arrival, departure, stopsHere) {
+function stationObject(name, code, arrival, platform, departure, stopsHere) {
   return {
     name: name,
     code: code,
     arrival: arrival,
+    platform: platform,
     departure: departure,
     stopsHere: stopsHere,
   };
@@ -367,6 +373,18 @@ function stateObject(
     },
   };
 }
+function errorObject(errorString, errorDetails) {
+  return {
+    body: {
+      error: errorString,
+      details: errorDetails,
+    },
+    hidden: {
+      update_type: "error",
+      action: "end",
+    },
+  };
+}
 //update to train state
 function emitUpdate(emitter, stateUpdate) {
   //if it's a journey update
@@ -379,4 +397,5 @@ module.exports = {
   getStationNameAndCode,
   emitUpdate,
   stateObject,
+  errorObject,
 };
