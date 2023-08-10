@@ -42,16 +42,17 @@ trackTrain("P70052").then((emitter) => {
 This emits live updates (as JSON) on the train until the journey is complete.
 ```js
 {
-  status: 'Approaching',
+  status: 'Arriving',
   station: {
-    name: 'Rugeley Town',
-    code: [ 'RGT' ],
-    arrival: { actual: '0615½' },
-    departure: { actual: null },
+    name: 'Dorridge',
+    code: '[DDG]',
+    arrival: { actual: '2219', scheduled: '2219' },
+    platform: { actual: '3', scheduled: null },
+    departure: { actual: null, scheduled: null },
     stopsHere: true
   },
-  destination: 'Rugeley Trent Valley',
-  delay: '+3'
+  destination: { name: 'Dorridge', code: '[DDG]' },
+  delay: '+1'
 }
 ```
 | Status  | Explanation |
