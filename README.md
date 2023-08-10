@@ -64,7 +64,7 @@ This emits live updates (as JSON) on the train until the journey is complete.
 | Departed  | Train just departed this stopping station  |
 
 ## More examples
-Track the next service from London to Manchester (Provided this service departs in the next hour):
+Track the next service from London to Manchester (Provided this service departs in the next two hours):
 ```js
 import {trackTrain, findTrains} from "trainspy";
 
