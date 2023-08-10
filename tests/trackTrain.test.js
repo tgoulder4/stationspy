@@ -98,5 +98,9 @@ describe("GetStationNameCode", () => {
       name: "Wolverhampton",
       code: "[WVH]",
     });
+    expect(getStationNameAndCode("Tyseley L.M.D. [XTS]")).toStrictEqual({
+      name: "Tyseley L.M.D.",
+      code: "[XTS]",
+    });
   });
 });

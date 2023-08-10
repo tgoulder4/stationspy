@@ -42,11 +42,11 @@ async function getHTML(serviceID) {
       "YYYY-MM-DD"
     )}/detailed`
   );
-  console.log(
-    `Link followed: https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${getCurrentDayTime(
-      "YYYY-MM-DD"
-    )}/detailed`
-  );
+  // console.log(
+  //   `Link followed: https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${getCurrentDayTime(
+  //     "YYYY-MM-DD"
+  //   )}/detailed`
+  // );
   let html = await response.text();
   return html;
 }
@@ -99,7 +99,7 @@ function getCurrentState($) {
   };
   //last actual arrival
   let mostRecentArrival = getMostRecentArrival();
-  console.log(`mostRecentArrival: ${mostRecentArrival}`);
+  // console.log(`mostRecentArrival: ${mostRecentArrival}`);
 
   //delay is last .delay.rt
   let delay =
@@ -124,7 +124,7 @@ function getCurrentState($) {
     }
   }
   let mostRecentDeparture = getMostRecentDeparture();
-  console.log(`MostRecentDeparture: ${mostRecentDeparture}`);
+  // console.log(`mostRecentDeparture: ${mostRecentDeparture}`);
 
   //a most recent arrival doesn't exist
   if (!mostRecentDeparture)
@@ -139,11 +139,11 @@ function getCurrentState($) {
     );
 
   let status = getStatus();
-  console.log(`Status: ${status}`);
+  // console.log(`Status: ${status}`);
 
   if (status) {
     let currentStation = getCurrentStation($(".platint").parent().parent());
-    console.log(`CurrentStation: ${currentStation}`);
+    // console.log(`CurrentStation: ${currentStation}`);
     return stateObject(
       status,
       currentStation,
@@ -262,12 +262,12 @@ function stationObject(name, code, arrival, departure, stopsHere) {
   };
 }
 function getStationNameAndCode(stationString) {
-  const match = stationString.match(/([\w\s]+)(?:\s*(\[\w+\]))?$/);
+  const match = stationString.match(/^(.+?)(?:\s(\[\w+\]))?$/);
+  console.log(match);
   if (!match) {
     console.error("Failed to match station string:", stationString);
     return { name: null, code: null };
   }
-
   //regex is correct
   return {
     name: match[1].trimEnd(),
