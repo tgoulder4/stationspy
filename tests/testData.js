@@ -46,6 +46,18 @@ const serviceCancelled = async () => {
     return error;
   }
 };
+const partiallyCancelled = async () => {
+  // export the html from the test state
+  try {
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/erronous/partiallyCancelled.html"
+    );
+    const html = await response.text();
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
 const departedStoppingStation = async () => {
   // export the html from the test state
   try {
@@ -131,6 +143,7 @@ const transitData = {
 const erronousData = {
   journeyNotFound,
   serviceCancelled,
+  partiallyCancelled,
 };
 module.exports = {
   transitData,

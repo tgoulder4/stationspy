@@ -68,14 +68,14 @@ function getCurrentState($) {
     );
   }
   //delay
-  const delaysWithText = $(".delay").filter(function () {
-    return $(this).text().trim() !== ""; // Only keep elements with non-empty text
-  });
 
-  const delay =
-    delaysWithText.last().text() == "Dly"
-      ? null
-      : delaysWithText.last().text() || null;
+  //last actual arrival
+  let stationArrived = getStationArrived();
+  // console.log(`stationArrived: ${stationArrived}`);
+
+  let stationDeparted = getStationDeparted();
+  // console.log(`stationDeparted: ${stationDeparted}`);
+  const delay = getDelay();
   let destination = {
     name:
       getStationNameAndCode($(".location").find(".name").last().text()).name ||
@@ -132,9 +132,6 @@ function getCurrentState($) {
         $(".dep.exp").first().parent().parent().find(".name").text()
       ).code || null,
   };
-  //last actual arrival
-  let stationArrived = getStationArrived();
-  // console.log(`stationArrived: ${stationArrived}`);
 
   //if a most recent arrival exists,
   if (stationArrived) {
@@ -163,9 +160,6 @@ function getCurrentState($) {
       );
     }
   }
-
-  let stationDeparted = getStationDeparted();
-  // console.log(`stationDeparted: ${stationDeparted}`);
 
   if (stationDeparted) {
     //if stopped there
@@ -204,6 +198,19 @@ function getCurrentState($) {
     );
   }
   return "There was an error finding the train's current status.";
+  function getDelay() {
+    //if arrived at a station,
+    if (stationArrived) {
+      //return the delay of that station
+      return $(".arr.act").last().parent().siblings(".delay").text() || null;
+    }
+    //if departed from a station,
+    if (stationDeparted) {
+      //return the delay of that station
+      return $(".dep.act").last().parent().siblings(".delay").text() || null;
+    }
+    return null;
+  }
   function getStatus() {
     return $(".platint").text() || null;
   }

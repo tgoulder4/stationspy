@@ -11,8 +11,17 @@ const cheerio = require("cheerio");
 let html,
   $ = "";
 
-// test("returns html", expect(trackTrain.getHTML("")).toBeTruthy());
 describe("Erronous", () => {
+  // 1-Partially-cancelled-routes
+  // test("partially cancelled", async () => {
+  //   html = await erronousData.partiallyCancelled();
+  //   $ = cheerio.load(html);
+  //   const state = getCurrentState($);
+  //   expect(state).toStrictEqual(
+  //   //AMEND ERROR OBJECT
+  //     errorObject("Not found", "Please enter a valid station code.")
+  //   );
+  // });
   test("not found", async () => {
     html = await getHTML(
       "https://www.realtimetrains.co.uk/service/gb-nr:aaaa/2023-07-22/detailed"
@@ -26,7 +35,7 @@ describe("Erronous", () => {
   test("service cancelled", async () => {
     html = await erronousData.serviceCancelled();
     $ = cheerio.load(html);
-    const state = await getCurrentState($);
+    const state = getCurrentState($);
     expect(state).toStrictEqual(
       errorObject(
         "This service is cancelled.",
@@ -36,7 +45,7 @@ describe("Erronous", () => {
   });
 });
 describe("Normal", () => {
-  test("Departed status on stopping station", async () => {
+  test("Departed stopping station with unknown delay", async () => {
     html = await transitData.departedStoppingStation();
     $ = cheerio.load(html);
     expect(getCurrentState($)).toStrictEqual(
@@ -51,7 +60,7 @@ describe("Normal", () => {
           stopsHere: true,
         },
         { name: "Worcester Foregate Street", code: "[WOF]" },
-        "-1",
+        null,
         "journey",
         "continue"
       )
@@ -113,7 +122,6 @@ describe("Normal", () => {
           departure: { actual: null, scheduled: null },
           stopsHere: true,
         },
-        { actual: "4", scheduled: null },
         { name: "Wolverhampton Cs", code: null },
         "-4",
         "journey",
@@ -121,7 +129,7 @@ describe("Normal", () => {
       )
     );
   });
-  test("Arriving", async () => {
+  test("Arriving, unknown delay", async () => {
     html = await transitData.arriving();
     $ = cheerio.load(html);
     expect(getCurrentState($)).toStrictEqual(
@@ -136,7 +144,7 @@ describe("Normal", () => {
           stopsHere: true,
         },
         { name: "Worcester Foregate Street", code: "[WOF]" },
-        "-1",
+        null,
         "journey",
         "continue"
       )
