@@ -6,7 +6,7 @@ const {
   errorObject,
 } = require("../src/trackTrain");
 const { expect, describe, it, test } = require("@jest/globals");
-const { transitData, erronousData } = require("./testData");
+const { transitData, erronousData } = require("./testHTMLData");
 const cheerio = require("cheerio");
 let html,
   $ = "";
