@@ -80,15 +80,41 @@ function getCurrentState($) {
       },
     };
   }
+  //delay
+  const delaysWithText = $(".delay").filter(function () {
+    return $(this).text().trim() !== ""; // Only keep elements with non-empty text
+  });
+
+  const delay =
+    delaysWithText.last().text() == "Dly"
+      ? "unknown"
+      : delaysWithText.last().text() || "unknown";
   let destination = {
-    name:
-      getStationNameAndCode($(".location").find(".name").last().text()).name ||
-      null,
-    code:
-      getStationNameAndCode($(".location").find(".name").last().text()).code ||
-      null,
+    name: getStationNameAndCode($(".location").find(".name").last().text())
+      .name,
+    code: getStationNameAndCode($(".location").find(".name").last().text())
+      .code,
   };
-  //origin $(".location").first().text() is undefined. WHY?!
+  let status = getStatus();
+  // console.log(`Status: ${status}`);
+
+  if (status) {
+    let currentStation = getCurrentStation();
+    // console.log(`CurrentStation: ${currentStation}`);
+    return stateObject(
+      status,
+      currentStation,
+      // nextStations,
+      destination,
+      delay,
+      "journey",
+      "continue"
+    );
+  }
+  // console.log(
+  //   `Destination.name: ${destination.name}, Destination.code: ${destination.code}`
+  // );
+
   let origin = {
     name:
       getStationNameAndCode($(".location").find(".name").first().text()).name ||
@@ -101,12 +127,6 @@ function getCurrentState($) {
   let mostRecentArrival = getMostRecentArrival();
   // console.log(`mostRecentArrival: ${mostRecentArrival}`);
 
-  //delay is last .delay.rt
-  let delay =
-    $(".delay.rt").last().text() ||
-    $(".delay.late").last().text() ||
-    $(".delay.early").last().text() ||
-    "unknown";
   //if a most recent arrival exists,
   if (mostRecentArrival) {
     //and journey complete return reached destination
@@ -138,22 +158,6 @@ function getCurrentState($) {
       "continue"
     );
 
-  let status = getStatus();
-  // console.log(`Status: ${status}`);
-
-  if (status) {
-    let currentStation = getCurrentStation($(".platint").parent().parent());
-    // console.log(`CurrentStation: ${currentStation}`);
-    return stateObject(
-      status,
-      currentStation,
-      // nextStations,
-      destination,
-      delay,
-      "journey",
-      "continue"
-    );
-  }
   if (mostRecentDeparture) {
     //if stopped there
     if (mostRecentDeparture.stopsHere) {
@@ -194,10 +198,12 @@ function getCurrentState($) {
       //arrival of station
       {
         actual: elementObj.find(".arr.rt.act").text() || null,
+        scheduled: elementObj.find(".arr.exp").text() || null,
       },
       //departure of station
       {
         actual: elementObj.find(".dep.rt.act").text() || null,
+        scheduled: elementObj.find(".dep.exp").text() || null,
       },
       //stopsHere
       elementObj.find(".pass").length == 0
@@ -215,9 +221,15 @@ function getCurrentState($) {
         //code of station
         code || null,
         //arrival of station
-        { actual: $(".arr.act").last().text() || null },
+        {
+          actual: elementObj.siblings(".arr.act").text() || null,
+          scheduled: elementObj.siblings(".arr.exp").text() || null,
+        },
         //departure of station
-        { actual: elementObj.text() },
+        {
+          actual: elementObj.text() || null,
+          scheduled: elementObj.siblings(".arr.act").text() || null,
+        },
         //stopsHere
         elementObj.siblings(".pass").length == 0
       );
@@ -240,9 +252,15 @@ function getCurrentState($) {
         //code of station
         code || null,
         //arrival of station
-        { actual: elementObj.text() || null },
+        {
+          actual: elementObj.text() || null,
+          scheduled: elementObj.siblings(".arr.exp").text() || null,
+        },
         //departure of station
-        { actual: elementObj.siblings(".dep.act").text() || null },
+        {
+          actual: elementObj.siblings(".dep.act").text() || null,
+          scheduled: elementObj.siblings(".dep.exp").text() || null,
+        },
         //stopsHere
         elementObj.siblings(".pass").length == 0
       );
@@ -263,7 +281,6 @@ function stationObject(name, code, arrival, departure, stopsHere) {
 }
 function getStationNameAndCode(stationString) {
   const match = stationString.match(/^(.+?)(?:\s(\[\w+\]))?$/);
-  console.log(match);
   if (!match) {
     console.error("Failed to match station string:", stationString);
     return { name: null, code: null };
@@ -300,7 +317,7 @@ function stateObject(
       status: status,
       station: station,
       // nextStations: nextStations,
-      destination: destination.name,
+      destination: destination,
       delay: delay,
     },
     hidden: {

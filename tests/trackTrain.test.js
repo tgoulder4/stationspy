@@ -5,7 +5,7 @@ const {
   stateObject,
 } = require("../src/trackTrain");
 const { expect, describe, it, test } = require("@jest/globals");
-const { transitData, erronousData } = require("./testData/testData");
+const { transitData, erronousData } = require("./testData");
 const cheerio = require("cheerio");
 let html,
   $ = "";
@@ -46,6 +46,26 @@ describe("Normal", () => {
         },
         { name: "Worcester Foregate Street", code: "[WOF]" },
         "-1",
+        "journey",
+        "continue"
+      )
+    );
+  });
+  test("Pass with unknown delay", async () => {
+    html = await transitData.leftPickupStation();
+    $ = cheerio.load(html);
+    expect(await getCurrentState($)).toStrictEqual(
+      stateObject(
+        "Passed",
+        {
+          name: "Soho South Jn",
+          code: "[XOS]",
+          arrival: { actual: null },
+          departure: { actual: "0537½" },
+          stopsHere: false,
+        },
+        { name: "Liverpool Lime Street", code: "[LIV]" },
+        "unknown",
         "journey",
         "continue"
       )
