@@ -2,7 +2,6 @@ const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
-const { platform } = require("os");
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
