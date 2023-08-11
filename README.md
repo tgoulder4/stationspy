@@ -1,5 +1,5 @@
-# trainspy - coming soon
-Get departures at any UK train station & recieve updates on trains throughout their journey via a custom made RTT API.
+# trainspy
+Get departures at any UK train station & recieve updates on trains throughout their journey via a custom made RTT API. 
 
 ## Install trainspy
 ```js
@@ -23,7 +23,6 @@ which returns in the following format:
 ```
 
 # Tracking a train
-Track a train that departed today
 ```js
 trackTrain(serviceID, timeTillRefresh?) //minimum timeTillRefresh of 5 seconds
 ```
@@ -31,6 +30,7 @@ trackTrain(serviceID, timeTillRefresh?) //minimum timeTillRefresh of 5 seconds
 You first need the ```serviceID```.
 Can be retrived by ```findTrains(stationCode)``` as shown above.
 
+## Track a train in service on the date of invoking trackTrain()
 ```js
 trackTrain("P70052").then((emitter) => {
   emitter.on("journeyUpdate", (data) => {
