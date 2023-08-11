@@ -23,6 +23,7 @@ which returns in the following format:
 ```
 
 # Tracking a train
+Track a train that departed today
 ```js
 trackTrain(serviceID, timeTillRefresh?) //minimum timeTillRefresh of 5 seconds
 ```
