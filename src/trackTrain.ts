@@ -6,7 +6,7 @@ type Timing = {
   actual: string;
   scheduled: string;
 };
-type recordInfo = {
+type recordInfo = {body: {
   name: string;
   code: string;
   arrival?: Timing;
@@ -14,14 +14,17 @@ type recordInfo = {
   delay: number;
   departure?: Timing;
   stopsHere: boolean;
-};
+},hidden?:{
+  badge: string;
+}};
+
 
 type state = {
   body: {
     status: string;
-    station: recordInfo;
+    station: recordInfo["body"];
     // nextStations: nextStations,
-    destination: recordInfo;
+    destination: recordInfo["body"];
     delay: number;
   };
   hidden: {
@@ -104,18 +107,59 @@ function getCurrentState($): state | error {
   const lastArrAct = $(".arr.act").last();
   const lastArrExp = $(".arr.exp").last();
   const destination: recordInfo = getInfo(getRecordObj(lastArrAct.length? lastArrAct : lastArrExp));
-  //if lastActioned is falsy -> not departed
+  //if lastActioned is falsy
   if (!lastActioned) {
-    return stateObject("Not departed", origin, destination, infoOrigin.delay,"continue");
+    return stateObject("Not departed", origin, destination.body, infoOrigin.body.delay,"continue");
   }
   const infoLastActioned: recordInfo = getInfo(lastActioned);
-  if (infoLastActioned.name == destination.name){
-    return stateObject("Reached destination", origin, destination, infoLastActioned.delay, "end")
+  const infoLastActionedBody= infoLastActioned.body;
+  if (infoLastActionedBody.name == destination.body.name){
+    return stateObject("Reached destination", origin, destination.body, infoLastActionedBody.delay, "end")
   }
-  //if there's a status
-  if (lastActioned.find(".platint").length) {
+  //if there's a badge
+  if (infoLastActioned.hidden?.badge) {
+    return stateObject(
+      infoLastActioned.hidden.badge,
+      infoLastActionedBody,
+      destination.body,
+      infoLastActioned.body.delay,
+      "continue"
+    );
   }
-  function stateObject(_status: string, _station: recordInfo, _destination: recordInfo, _delay: number,_action:string ): state {
+  //if there's a departure
+  const isDeparture:boolean = !!(infoLastActionedBody.departure?.actual || infoLastActionedBody.departure?.scheduled);
+  const isArrival:boolean = !!(infoLastActionedBody.arrival?.actual || infoLastActionedBody.arrival?.scheduled);
+  //if arr,dep,stopshere
+  if (isArrival&&isDeparture&&infoLastActionedBody.stopsHere) {
+    return stateObject(
+      "Departed",
+      infoLastActionedBody,
+      destination.body,
+      infoLastActioned.body.delay,
+      "continue"
+    );
+  }
+  //if dep,!stopshere
+  if (isDeparture&&(!infoLastActionedBody.stopsHere)&&!isArrival) {
+    return stateObject(
+      "Passed",
+      infoLastActionedBody,
+      destination.body,
+      infoLastActioned.body.delay,
+      "continue"
+    );
+  }
+  //if dep, !stopshere
+  if(isArrival&&(!infoLastActionedBody.stopsHere)){
+    return stateObject(
+      "Passed",
+      infoLastActionedBody,
+      destination.body,
+      infoLastActioned.body.delay,
+      "continue"
+    );
+  }
+  function stateObject(_status: string, _station: recordInfo["body"], _destination: recordInfo["body"], _delay: number,_action:string ): state {
     return {
       body: {
         status: _status,
