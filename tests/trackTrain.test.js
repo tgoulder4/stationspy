@@ -5,8 +5,16 @@ const {
   stateObject,
   errorObject,
 } = require("../src/trackTrain");
-const { expect, describe, it, test } = require("@jest/globals");
-const { transitData, erronousData } = require("./testHTMLData");
+const { expect, describe, test } = require("@jest/globals");
+//----
+const {
+  serviceCancelled,
+  departedStoppingStation,
+  passUnknownDelay,
+  passedPassStation,
+  reachedDestination,
+  arriving,
+} = require("./testHTMLData");
 const cheerio = require("cheerio");
 let html,
   $ = "";
@@ -33,7 +41,7 @@ describe("Erronous", () => {
     );
   });
   test("service cancelled", async () => {
-    html = await erronousData.serviceCancelled();
+    html = await serviceCancelled();
     $ = cheerio.load(html);
     const state = getCurrentState($);
     expect(state).toStrictEqual(
@@ -46,7 +54,7 @@ describe("Erronous", () => {
 });
 describe("Normal", () => {
   test("Departed stopping station with unknown delay", async () => {
-    html = await transitData.departedStoppingStation();
+    html = await departedStoppingStation();
     $ = cheerio.load(html);
     expect(getCurrentState($)).toStrictEqual(
       stateObject(
@@ -67,7 +75,7 @@ describe("Normal", () => {
     );
   });
   test("Pass with unknown delay", async () => {
-    html = await transitData.passUnknownDelay();
+    html = await passUnknownDelay();
     $ = cheerio.load(html);
     expect(getCurrentState($)).toStrictEqual(
       stateObject(
@@ -88,7 +96,7 @@ describe("Normal", () => {
     );
   });
   test("Passed status on passing station", async () => {
-    html = await transitData.passedPassStation();
+    html = await passedPassStation();
     $ = cheerio.load(html);
     expect(getCurrentState($)).toStrictEqual(
       stateObject(
@@ -109,7 +117,7 @@ describe("Normal", () => {
     );
   });
   test("Reached destination", async () => {
-    html = await transitData.reachedDestination();
+    html = await reachedDestination();
     $ = cheerio.load(html);
     expect(getCurrentState($)).toStrictEqual(
       stateObject(
@@ -130,7 +138,7 @@ describe("Normal", () => {
     );
   });
   test("Arriving, unknown delay", async () => {
-    html = await transitData.arriving();
+    html = await arriving();
     $ = cheerio.load(html);
     expect(getCurrentState($)).toStrictEqual(
       stateObject(

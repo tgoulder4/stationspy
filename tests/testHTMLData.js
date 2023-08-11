@@ -146,6 +146,6 @@ const erronousData = {
   partiallyCancelled,
 };
 module.exports = {
-  transitData,
-  erronousData,
+  ...transitData,
+  ...erronousData,
 };
