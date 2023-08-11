@@ -1,4 +1,4 @@
-# trainspy
+# trainspy - coming soon
 Get departures at any UK train station & recieve updates on trains throughout their journey via a custom made RTT API.
 
 ## Install trainspy
