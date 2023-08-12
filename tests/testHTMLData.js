@@ -22,7 +22,7 @@ const atPlatform = async () => {
     return error;
   }
 };
-const journeyNotFound = async () => {
+const journeyNotFoundTest = async () => {
   // export the html from the test state
   try {
     const response = await fetch(
@@ -141,7 +141,7 @@ const transitData = {
   passUnknownDelay,
 };
 const erronousData = {
-  journeyNotFound,
+  journeyNotFoundTest,
   serviceCancelled,
   partiallyCancelled,
 };

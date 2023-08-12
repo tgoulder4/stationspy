@@ -3,47 +3,7 @@ const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
 import getInfo from "./getInfo";
-type Timing = {
-  actual: string;
-  scheduled: string;
-};
-type recordInfo = {
-  body: {
-    name: string;
-    code: string;
-    arrival?: Timing;
-    platform: string;
-    delay: number;
-    departure?: Timing;
-    stopsHere: boolean;
-  };
-  hidden?: {
-    badge: string;
-  };
-};
-type state = {
-  body: {
-    status: string;
-    station: recordInfo["body"];
-    // nextStations: nextStations,
-    destination: recordInfo["body"];
-    delay: number;
-  };
-  hidden: {
-    update_type: string;
-    action: string;
-  };
-};
-type error = {
-  body: {
-    error: string;
-    details: string;
-  };
-  hidden: {
-    update_type: "error";
-    action: "end";
-  };
-};
+import { error, state, recordInfo } from "./types/types";
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
@@ -79,37 +39,6 @@ async function trackTrain(serviceID, timeTillRefresh = 5000) {
   return trainUpdateEmitter;
 }
 
-async function getHTML(serviceID, date) {
-  //get real data
-  let response = await fetch(
-    `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`
-  );
-  let html = await response.text();
-  return html;
-}
-//UNIT TESTS
-function noAvailableRouteCheck(
-  $,
-  firstDepAct: JQuery<any>,
-  firstDepExp: JQuery<any>
-) {
-  if (firstDepAct.length == 0 && firstDepExp.length == 0) {
-    return true;
-  }
-}
-function notFoundCheck($) {
-  if ($(".info h3").text() == "Not found") {
-    //return error update
-    return true;
-  }
-}
-function findOrigin($, firstDepAct: JQuery<any>, firstDepExp: JQuery<any>) {
-  return getRecordObj($, firstDepAct.length ? firstDepAct : firstDepExp);
-}
-function getRecordObj($, someLocationChild: JQuery<any>): JQuery<any> {
-  return $(someLocationChild).parent(".location").last();
-}
-
 function errorObject(errorString: string, errorDetails: string): error {
   return {
     body: {
@@ -122,11 +51,51 @@ function errorObject(errorString: string, errorDetails: string): error {
     },
   };
 }
-//expect tobeornotbenull only
-function getActioningRecord($, locationList: JQuery<any>): JQuery<any> | null {
+//UNIT TESTS
+export async function getHTML(serviceID, date): Promise<string> {
+  //get real data
+  let response = await fetch(
+    `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`
+  );
+  let html = await response.text();
+  return html;
+}
+export function availableRouteCheck(
+  $,
+  firstDepAct: cheerio.Cheerio,
+  firstDepExp: cheerio.Cheerio
+) {
+  if (firstDepAct.length == 0 && firstDepExp.length == 0) {
+    return false;
+  }
+  return true;
+}
+export function journeyNotFound($) {
+  if ($(".info h3").text() == "Not found") {
+    //return error update
+    return true;
+  }
+}
+export function findOrigin(
+  $,
+  firstDepAct: cheerio.Cheerio,
+  firstDepExp: cheerio.Cheerio
+): cheerio.Cheerio {
+  return getRecordObj($, firstDepAct.length ? firstDepAct : firstDepExp);
+}
+export function getRecordObj(
+  $,
+  someLocationChild: cheerio.Cheerio
+): cheerio.Cheerio {
+  return $(someLocationChild).parent(".location").last();
+}
+export function getActioningRecord(
+  $,
+  locationList: cheerio.Cheerio
+): cheerio.Cheerio | null {
   //there could be a status
-  const badge: JQuery<any> = locationList.find(".platint");
-  const actualMovement: JQuery<any> = locationList.find(".act");
+  const badge: cheerio.Cheerio = locationList.find(".platint");
+  const actualMovement: cheerio.Cheerio = locationList.find(".act");
   //if there is a badge
   if (badge.length != 0) {
     //return the whole location object
@@ -144,21 +113,24 @@ function getActioningRecord($, locationList: JQuery<any>): JQuery<any> | null {
 //get state of train given html cheerio object
 function getCurrentState($): state | error {
   //service not found
-  if (notFoundCheck($)) {
+  if (journeyNotFound($)) {
     return errorObject("Not found", "Please enter a valid station code.");
   }
-  //START UNIT TEST: noAvailableRouteCheck
+  //START UNIT TEST: availableRouteCheck
   const firstDepAct = $(".dep.act").first();
   const firstDepExp = $(".dep.exp").first();
 
-  if (noAvailableRouteCheck($, firstDepAct, firstDepExp)) {
+  if (!availableRouteCheck($, firstDepAct, firstDepExp)) {
     return errorObject("No available route", $(".callout").text());
   }
 
-  const locationList: JQuery<any> = $(".locationlist");
+  const locationList: cheerio.Cheerio = $(".locationlist");
   const origin = findOrigin($, firstDepAct, firstDepExp);
   const infoOrigin = getInfo(origin);
-  const lastActioned: JQuery<any> | null = getActioningRecord($, locationList);
+  const lastActioned: cheerio.Cheerio | null = getActioningRecord(
+    $,
+    locationList
+  );
   const lastArrAct = $(".arr.act").last();
   const lastArrExp = $(".arr.exp").last();
   const destination = getRecordObj(
@@ -166,6 +138,7 @@ function getCurrentState($): state | error {
     lastArrAct.length ? lastArrAct : lastArrExp
   );
   const infoDestination: recordInfo = getInfo(destination);
+  const infoDestinationBody: recordInfo["body"] = infoDestination.body;
   //if lastActioned is falsy
   if (!lastActioned) {
     return stateObject(
@@ -176,9 +149,8 @@ function getCurrentState($): state | error {
     );
   }
   const infoLastActioned: recordInfo = getInfo(lastActioned);
-  console.log(`infoLastActioned: ${infoLastActioned}`);
   const infoLastActionedBody = infoLastActioned.body;
-  if (infoLastActionedBody.name == infoDestination.body.name) {
+  if (infoLastActionedBody.name == infoDestinationBody.name) {
     return stateObject(
       "Reached destination",
       infoOrigin.body,
@@ -212,27 +184,27 @@ function getCurrentState($): state | error {
     return stateObject(
       "Departed",
       infoLastActionedBody,
-      infoDestination.body,
+      infoDestinationBody,
       "continue",
       infoLastActioned.body.delay
     );
   }
   //if dep,!stopshere
-  if (isDeparture && !infoLastActionedBody.stopsHere && !isArrival) {
+  if (isDeparture && !isArrival && !infoLastActionedBody.stopsHere) {
     return stateObject(
       "Passed",
       infoLastActionedBody,
-      infoDestination.body,
+      infoDestinationBody,
       "continue",
       infoLastActioned.body.delay
     );
   }
   //if dep, !stopshere
-  if (isArrival && !infoLastActionedBody.stopsHere) {
+  if (!isArrival && !isDeparture) {
     return stateObject(
-      "Passed",
+      "Cancelled",
       infoLastActionedBody,
-      infoDestination.body,
+      infoDestinationBody,
       "continue",
       infoLastActioned.body.delay
     );
@@ -264,10 +236,3 @@ function emitUpdate(emitter, stateUpdate) {
   //if it's a journey update
   emitter.emit(`${stateUpdate.hidden.update_type}Update`, stateUpdate.body);
 }
-module.exports = {
-  trackTrain,
-  getHTML,
-  getCurrentState,
-  parseStationNameAndCode,
-  emitUpdate,
-};
