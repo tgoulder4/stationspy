@@ -48,7 +48,6 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
   //   );
   // }
   const { name, code } = parseStationNameAndCode(record);
-  const schedule: cheerio.Cheerio = record.find(".wtt");
   const arrExpValue = record.find(".arr.exp");
   const arrActValue = record.find(".arr.act");
   const depExpValue = record.find(".dep.exp");
@@ -58,7 +57,7 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
   const platform = record.find(".platform").text();
   const delay = getDelay(record);
   const stopsHere = record.find(".pass").length == 0;
-  const commonData: recordInfo["body"] = {
+  let commonData: recordInfo["body"] = {
     name: name,
     code: code,
     platform: platform,
@@ -67,7 +66,7 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
   };
   //if no dep values
   if (arrValueExists && depValueExists) {
-    return {
+    commonData = {
       ...commonData,
       arrival: {
         actual: arrActValue.text(),
@@ -85,7 +84,7 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
   }
   if (!arrValueExists && depValueExists) {
     //return without departure
-    return {
+    commonData = {
       ...commonData,
       departure: {
         actual: depActValue.text(),
@@ -96,7 +95,7 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
     };
   }
   if (arrValueExists && !depValueExists) {
-    return {
+    commonData = {
       ...commonData,
       arrival: {
         actual: arrActValue.text(),
@@ -106,5 +105,5 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
       },
     };
   }
-  return commonData;
+  return { body: { commonData }, hidden: {} };
 }

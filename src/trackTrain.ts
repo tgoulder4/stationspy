@@ -83,19 +83,23 @@ export function findOrigin(
 ): cheerio.Cheerio {
   return getRecordObj($, firstDepAct.length ? firstDepAct : firstDepExp);
 }
+export function findDestination($, lastArrAct, lastArrExp) {
+  //find last arr.act or arr.exp
+  return getRecordObj($, lastArrAct.length ? lastArrAct : lastArrExp);
+}
 export function getRecordObj(
-  $,
+  $: cheerio.Root,
   someLocationChild: cheerio.Cheerio
 ): cheerio.Cheerio {
-  return $(someLocationChild).parent(".location").last();
+  return someLocationChild.parents(".location").last();
 }
-export function getActioningRecord(
+export function findActioning(
   $,
   locationList: cheerio.Cheerio
 ): cheerio.Cheerio | null {
   //there could be a status
   const badge: cheerio.Cheerio = locationList.find(".platint");
-  const actualMovement: cheerio.Cheerio = locationList.find(".act");
+  const actualMovement: cheerio.Cheerio = locationList.find(".act").last();
   //if there is a badge
   if (badge.length != 0) {
     //return the whole location object
@@ -105,38 +109,37 @@ export function getActioningRecord(
   if (actualMovement.length != 0) {
     return getRecordObj($, actualMovement);
   }
-  console.log(`getActioningRecord returned null.`);
+  console.log(`findActioning returned null.`);
   return null; //no movement
 }
-
+export const getVariables = function ($: cheerio.Root) {
+  return {
+    firstDepAct: $(".dep.act").first(),
+    firstDepExp: $(".dep.exp").first(),
+    locationList: $(".locationlist"),
+    lastArrAct: $(".arr.act").last(),
+    lastArrExp: $(".arr.exp").last(),
+  };
+};
 //
 //get state of train given html cheerio object
-function getCurrentState($): state | error {
+function getCurrentState($: cheerio.Root): state | error {
+  const { firstDepAct, firstDepExp, locationList, lastArrAct, lastArrExp } =
+    getVariables($);
   //service not found
   if (journeyNotFound($)) {
     return errorObject("Not found", "Please enter a valid station code.");
   }
   //START UNIT TEST: availableRouteCheck
-  const firstDepAct = $(".dep.act").first();
-  const firstDepExp = $(".dep.exp").first();
 
   if (!availableRouteCheck($, firstDepAct, firstDepExp)) {
     return errorObject("No available route", $(".callout").text());
   }
 
-  const locationList: cheerio.Cheerio = $(".locationlist");
   const origin = findOrigin($, firstDepAct, firstDepExp);
   const infoOrigin = getInfo(origin);
-  const lastActioned: cheerio.Cheerio | null = getActioningRecord(
-    $,
-    locationList
-  );
-  const lastArrAct = $(".arr.act").last();
-  const lastArrExp = $(".arr.exp").last();
-  const destination = getRecordObj(
-    $,
-    lastArrAct.length ? lastArrAct : lastArrExp
-  );
+  const lastActioned: cheerio.Cheerio | null = findActioning($, locationList);
+  const destination = findDestination($, lastArrAct, lastArrExp);
   const infoDestination: recordInfo = getInfo(destination);
   const infoDestinationBody: recordInfo["body"] = infoDestination.body;
   //if lastActioned is falsy
