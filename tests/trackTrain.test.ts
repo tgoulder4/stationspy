@@ -71,7 +71,7 @@ describe("getCurrentState dependencies", () => {
       // console.log($(".actioningRecord").html());
       // console.log(getRecordObj($, $(".dep.act").last()).html());
       expect(
-        getRecordObj($, firstDepAct.length ? firstDepAct : firstDepExp).html()
+        getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp).html()
       ).toStrictEqual($(".originRecord").html());
     });
   });
@@ -117,8 +117,8 @@ describe("getCurrentState dependencies", () => {
       // console.log("findOrigin -> departed (transit):");
       // console.log(findOrigin($).html());
       // console.log($(".originRecord").html());
-      expect(findActioning($, locationList)?.length).toBe(1);
-      expect(findActioning($, locationList)?.html()).toStrictEqual(
+      expect(findActioning(locationList)?.length).toBe(1);
+      expect(findActioning(locationList)?.html()).toStrictEqual(
         $(".actioningRecord").html()
       );
     });
@@ -128,8 +128,8 @@ describe("getCurrentState dependencies", () => {
       const { locationList } = trackTrainVariables($);
       // console.log("findOrigin -> non-existent (cancelled):");
       // console.log(findOrigin($).html());
-      expect(findActioning($, locationList)?.length).toBeUndefined();
-      expect(findActioning($, locationList)).toBeNull();
+      expect(findActioning(locationList)?.length).toBeUndefined();
+      expect(findActioning(locationList)).toBeNull();
     });
     test("findActioningRecord -> (passedPass)", async () => {
       const html = await passedPassStation();
@@ -138,8 +138,8 @@ describe("getCurrentState dependencies", () => {
       // console.log("findOrigin -> (not departed):");
       // console.log(findOrigin($).html());
       // console.log($(".originRecord").html());
-      expect(findActioning($, locationList)?.length).toBe(1);
-      expect(findActioning($, locationList)?.html()).toStrictEqual(
+      expect(findActioning(locationList)?.length).toBe(1);
+      expect(findActioning(locationList)?.html()).toStrictEqual(
         $(".actioningRecord").html()
       );
     });
