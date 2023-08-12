@@ -81,6 +81,7 @@ export function findOrigin(
   firstDepAct: cheerio.Cheerio,
   firstDepExp: cheerio.Cheerio
 ): cheerio.Cheerio {
+  //first check act, if none then exp would be the origin
   return getRecordObj($, firstDepAct.length ? firstDepAct : firstDepExp);
 }
 export function findDestination($, lastArrAct, lastArrExp) {
@@ -112,9 +113,10 @@ export function findActioning(
   console.log(`findActioning returned null.`);
   return null; //no movement
 }
-export const getVariables = function ($: cheerio.Root) {
+export const trackTrainVariables = function ($: cheerio.Root) {
   return {
     firstDepAct: $(".dep.act").first(),
+    records: $(".location.call.public"),
     firstDepExp: $(".dep.exp").first(),
     locationList: $(".locationlist"),
     lastArrAct: $(".arr.act").last(),
@@ -124,8 +126,14 @@ export const getVariables = function ($: cheerio.Root) {
 //
 //get state of train given html cheerio object
 function getCurrentState($: cheerio.Root): state | error {
-  const { firstDepAct, firstDepExp, locationList, lastArrAct, lastArrExp } =
-    getVariables($);
+  const {
+    firstDepAct,
+    firstDepExp,
+    locationList,
+    lastArrAct,
+    lastArrExp,
+    records,
+  } = trackTrainVariables($);
   //service not found
   if (journeyNotFound($)) {
     return errorObject("Not found", "Please enter a valid station code.");

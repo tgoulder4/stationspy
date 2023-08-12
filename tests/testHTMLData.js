@@ -70,6 +70,18 @@ const departedStoppingStation = async () => {
     return error;
   }
 };
+const notYetDeparted = async () => {
+  // export the html from the test state
+  try {
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/notYetDeparted.html"
+    );
+    const html = await response.text();
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
 const approachingAPass = async () => {
   // export the html from the test state
   try {
@@ -139,6 +151,7 @@ const transitData = {
   passedPassStation,
   reachedDestination,
   passUnknownDelay,
+  notYetDeparted,
 };
 const erronousData = {
   journeyNotFoundTest,
