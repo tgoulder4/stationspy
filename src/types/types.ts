@@ -5,7 +5,7 @@ type Timing = {
 export type recordInfo = {
   body: {
     name: string;
-    code: string;
+    code: string | null;
     arrival?: Timing;
     platform: string;
     delay: number;

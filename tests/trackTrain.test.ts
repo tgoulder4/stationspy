@@ -21,7 +21,7 @@ import {
   locationListExists,
   destinationReached,
 } from "../src/trackTrain";
-import { getInfo } from "../src/getInfo";
+import { getInfo, parseStationNameAndCode } from "../src/getInfo";
 //  && lastActioned.find(".pass").length!=0
 describe("primitives: getCurrentState", () => {
   describe("locationListExists", () => {
@@ -222,7 +222,30 @@ describe("primitives: getCurrentState", () => {
       expect(findAction(locationList)!.text().trim()).toBe("Approaching");
     });
   });
-  describe("getInfo", () => {
+
+  describe("parseStationNameAndCode", () => {
+    test("parseStationNameAndCode -> ('Birmingham Moor Street [BMO]')", async () => {
+      expect(
+        parseStationNameAndCode("Birmingham Moor Street [BMO]")
+      ).toStrictEqual({
+        name: "Birmingham Moor Street",
+        code: "[BMO]",
+      });
+    });
+    test("parseStationNameAndCode -> ('Wolverhampton Cs')", async () => {
+      expect(parseStationNameAndCode("Wolverhampton Cs")).toStrictEqual({
+        name: "Wolverhampton Cs",
+        code: null,
+      });
+    });
+    test("parseStationNameAndCode -> ('lastTest [test]')", async () => {
+      expect(parseStationNameAndCode("lastTest [test]")).toStrictEqual({
+        name: "lastTest",
+        code: "[test]",
+      });
+    });
+  });
+  describe("getInfo - parseStationNameAndCode dependent", () => {
     test("getInfo -> (passedPass)", async () => {
       const html = await passedPassStation();
       const $ = cheerio.load(html);
@@ -279,6 +302,27 @@ describe("primitives: getCurrentState", () => {
           platform: "4",
           delay: 0,
           departure: { actual: "1552", scheduled: "1552" },
+          stopsHere: true,
+        },
+        hidden: {
+          badgeText: "",
+        },
+      });
+    });
+    test("getInfo -> nullDep (ReachedDestination)", async () => {
+      const html = await reachedDestination();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getInfo($(".destinationRecord"))).toStrictEqual({
+        body: {
+          name: "Wolverhampton Cs",
+          code: null,
+          arrival: { actual: "2309", scheduled: "2313" },
+          platform: "4",
+          delay: -4,
+          departure: { actual: null, scheduled: null },
           stopsHere: true,
         },
         hidden: {
