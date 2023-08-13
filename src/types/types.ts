@@ -1,5 +1,5 @@
 type Timing = {
-  actual: string | null;
+  actual?: string | null;
   scheduled: string | null;
 };
 export type recordInfo = {
@@ -7,10 +7,10 @@ export type recordInfo = {
     name: string;
     code: string | null;
     arrival?: Timing;
-    platform: string;
-    delay: number;
+    platform?: string;
+    delay?: number;
     departure?: Timing;
-    stopsHere: boolean;
+    stopsHere?: boolean;
   };
   hidden: {
     badgeText: string;

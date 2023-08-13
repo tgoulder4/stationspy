@@ -80,7 +80,7 @@ export function getInfo(record: cheerio.Cheerio): recordInfo {
     commonBodyData = {
       ...commonBodyData,
       arrival: {
-        actual: arrActValue.text().trim(),
+        actual: arrActValue.length ? arrActValue.text().trim() : null,
         scheduled: arrExpValue.length
           ? arrExpValue.text().trim()
           : record.find(".wtt .arr").text().trim(),

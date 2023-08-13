@@ -164,7 +164,7 @@ export const variables = function ($: cheerio.Root) {
 };
 //END UNIT TESTS
 //get state of train given html cheerio object
-function getCurrentState($: cheerio.Root): state | error {
+export function getCurrentState($: cheerio.Root): state | error {
   //if no locationlist
   if (!locationListExists($)) {
     return errorObject(
@@ -173,23 +173,37 @@ function getCurrentState($: cheerio.Root): state | error {
     );
   }
   const { origin, lastActioned, destination } = variables($);
+
   //if no origin
   if (!origin || !destination) {
     return errorObject("No route.\n", $(".callout").text());
   }
+  const dest: recordInfo = getInfo(destination);
   //if no lastActioned
   if (!lastActioned) {
     return stateObject(
       "Not departed",
-      getInfo(origin!).body,
-      getInfo(destination!).body,
+      getInfo(origin).body,
+      {
+        name: dest.body.name,
+        code: dest.body.code,
+        arrival: dest.body.arrival,
+      },
       "continue"
     );
   }
   //if destination reached
   if (destinationReached(lastActioned, destination)) {
-    const dest = getInfo(destination!);
-    return stateObject("Reached destination", dest.body, dest.body, "end");
+    return stateObject(
+      "Reached destination",
+      dest.body,
+      {
+        name: dest.body.name,
+        code: dest.body.code,
+        arrival: dest.body.arrival,
+      },
+      "end"
+    );
   }
   //if there's a badge
   if (badgeExists(lastActioned)) {
@@ -197,26 +211,27 @@ function getCurrentState($: cheerio.Root): state | error {
     return stateObject(
       lastA.hidden.badgeText,
       lastA.body,
-      getInfo(destination).body,
+      {
+        name: dest.body.name,
+        code: dest.body.code,
+        arrival: dest.body.arrival,
+      },
       "continue"
     );
   }
   //if a departure element exists
-  const isDeparture: boolean = !!(
-    infoLastActionedBody.departure?.actual ||
-    infoLastActionedBody.departure?.scheduled
-  );
-  //if an arrival element exists
-  const isArrival: boolean = !!(
-    infoLastActionedBody.arrival?.actual ||
-    infoLastActionedBody.arrival?.scheduled
-  );
+  const isDeparture = lastActioned.find(".dep.act").length != 0;
+  const isArrival = lastActioned.find(".arr.act").length != 0;
   //if arr,dep,stopshere
-  if (isArrival && isDeparture && lastActioned!.find(".pass").length == 0) {
+  if (isArrival && isDeparture && lastActioned.find(".pass").length == 0) {
     return stateObject(
       "Departed",
       getInfo(lastActioned).body,
-      getInfo(destination).body,
+      {
+        name: dest.body.name,
+        code: dest.body.code,
+        arrival: dest.body.arrival,
+      },
       "continue"
     );
   }
@@ -225,7 +240,11 @@ function getCurrentState($: cheerio.Root): state | error {
     return stateObject(
       "Passed",
       getInfo(lastActioned).body,
-      getInfo(destination).body,
+      {
+        name: dest.body.name,
+        code: dest.body.code,
+        arrival: dest.body.arrival,
+      },
       "continue"
     );
   }
@@ -234,18 +253,25 @@ function getCurrentState($: cheerio.Root): state | error {
     return stateObject(
       "Departed - No report",
       getInfo(lastActioned).body,
-      getInfo(destination).body,
+      {
+        name: dest.body.name,
+        code: dest.body.code,
+        arrival: dest.body.arrival,
+      },
       "continue"
     );
   }
-  if (!isArrival && !isDeparture && lastActioned.find(".pass").length == 0) {
-    return stateObject(
-      "Passed - No report",
-      getInfo(lastActioned).body,
-      getInfo(destination).body,
-      "continue"
-    );
-  }
+  //if !arr, !dep !stopshere
+  return stateObject(
+    "Passed - No report",
+    getInfo(lastActioned).body,
+    {
+      name: dest.body.name,
+      code: dest.body.code,
+      arrival: dest.body.arrival,
+    },
+    "continue"
+  );
 }
 function stateObject(
   _status: string,

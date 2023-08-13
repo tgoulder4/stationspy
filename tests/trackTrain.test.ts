@@ -20,6 +20,7 @@ import {
   variables,
   locationListExists,
   destinationReached,
+  getCurrentState,
 } from "../src/trackTrain";
 import { getInfo, parseStationNameAndCode } from "../src/getInfo";
 //  && lastActioned.find(".pass").length!=0
@@ -264,6 +265,110 @@ describe("primitives: getCurrentState", () => {
         },
         hidden: {
           badgeText: "",
+        },
+      });
+    });
+    test("getInfo -> (arriving)", async () => {
+      const html = await arriving();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getInfo($(".actioningRecord"))).toStrictEqual({
+        body: {
+          name: "Birmingham Moor Street",
+          code: "[BMO]",
+          arrival: { actual: "1555", scheduled: "1555½" },
+          platform: "2",
+          delay: 0,
+          departure: { actual: null, scheduled: "1557" },
+          stopsHere: true,
+        },
+        hidden: {
+          badgeText: "Arriving",
+        },
+      });
+    });
+    test("getInfo -> (departedStopping)", async () => {
+      const html = await departedStoppingStation();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getInfo($(".actioningRecord"))).toStrictEqual({
+        body: {
+          name: "Small Heath",
+          code: "[SMA]",
+          arrival: { actual: "1549¾", scheduled: "1551" },
+          platform: "4",
+          delay: 0,
+          departure: { actual: "1552", scheduled: "1552" },
+          stopsHere: true,
+        },
+        hidden: {
+          badgeText: "",
+        },
+      });
+    });
+    test("getInfo -> nullDep (ReachedDestination)", async () => {
+      const html = await reachedDestination();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getInfo($(".destinationRecord"))).toStrictEqual({
+        body: {
+          name: "Wolverhampton Cs",
+          code: null,
+          arrival: { actual: "2309", scheduled: "2313" },
+          platform: "4",
+          delay: -4,
+          departure: { actual: null, scheduled: null },
+          stopsHere: true,
+        },
+        hidden: {
+          badgeText: "",
+        },
+      });
+    });
+  });
+  describe("getCurrentState - all dependent", () => {
+    test("getCurrentState -> (passedPass)", async () => {
+      const html = await passedPassStation();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getCurrentState($)).toStrictEqual({
+        body: {
+          status: "Passed",
+          station: {
+            name: "Proof House Jn",
+            code: "[XOZ]",
+            platform: null,
+            stopsHere: false,
+            delay: 1,
+            arrival: {
+              actual: null,
+              scheduled: null,
+            },
+            departure: {
+              actual: "2236¾",
+              scheduled: "2235½",
+            },
+          },
+          destination: {
+            name: "Wolverhampton Cs",
+            code: null,
+            arrival: {
+              actual: null,
+              scheduled: "2313",
+            },
+          },
+        },
+        hidden: {
+          update_type: "journey",
+          action: "continue",
         },
       });
     });
