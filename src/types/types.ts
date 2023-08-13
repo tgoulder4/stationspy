@@ -1,6 +1,6 @@
 type Timing = {
-  actual: string;
-  scheduled: string;
+  actual: string | null;
+  scheduled: string | null;
 };
 export type recordInfo = {
   body: {

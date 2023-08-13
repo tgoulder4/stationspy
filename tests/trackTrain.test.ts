@@ -21,6 +21,7 @@ import {
   locationListExists,
   destinationReached,
 } from "../src/trackTrain";
+import { getInfo } from "../src/getInfo";
 //  && lastActioned.find(".pass").length!=0
 describe("primitives: getCurrentState", () => {
   describe("locationListExists", () => {
@@ -219,6 +220,50 @@ describe("primitives: getCurrentState", () => {
       // console.log($(".originRecord").html());
       expect(findAction(locationList)!.length).toBe(1);
       expect(findAction(locationList)!.text().trim()).toBe("Approaching");
+    });
+  });
+  describe("getInfo", () => {
+    test("getInfo -> (departedStopping)", async () => {
+      const html = await passedPassStation();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getInfo($(".actioningRecord"))).toStrictEqual({
+        body: {
+          name: "Proof House Jn",
+          code: "[XOZ]",
+          arrival: { actual: null, scheduled: null },
+          platform: null,
+          delay: 1,
+          departure: { actual: "2236¾", scheduled: "2235½" },
+          stopsHere: false,
+        },
+        hidden: {
+          badgeText: "",
+        },
+      });
+    });
+    test("getInfo -> (departedStopping)", async () => {
+      const html = await departedStoppingStation();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getInfo($(".actioningRecord"))).toStrictEqual({
+        body: {
+          name: "Small Heath",
+          code: "[SMA]",
+          arrival: { actual: "1549¾", scheduled: "1551" },
+          platform: "4",
+          delay: 0,
+          departure: { actual: "1552", scheduled: "1552" },
+          stopsHere: true,
+        },
+        hidden: {
+          badgeText: "",
+        },
+      });
     });
   });
 });

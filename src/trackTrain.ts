@@ -110,11 +110,6 @@ export function findAction(
   } else {
     actualMovement = locationList.find(".dep.act").last();
   }
-  // const actualMovement: cheerio.Cheerio = locationList.find(".arr.act").length
-  //   ? locationList.find(".dep.act").last().length
-  //     ? locationList.find(".dep.act").last()
-  //     : locationList.find(".arr.act").last()
-  //   : locationList.find(".dep.act").last();
   //if there is a badge
   if (badge.length != 0) {
     return badge;

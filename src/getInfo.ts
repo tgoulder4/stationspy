@@ -1,5 +1,9 @@
 import { recordInfo } from "./types/types";
-function getDelay(record: cheerio.Cheerio) {
+//UNIT TESTS
+export function getDelay(record: cheerio.Cheerio) {
+  if (record.find(".delay.nil").length != 0) {
+    return 0;
+  }
   return parseInt(record.find(".delay").text());
 }
 export function parseStationNameAndCode(record: cheerio.Cheerio) {
@@ -16,15 +20,22 @@ export function parseStationNameAndCode(record: cheerio.Cheerio) {
     code: match[2],
   };
 }
-export default function getInfo(record: cheerio.Cheerio): recordInfo {
+export function getInfo(record: cheerio.Cheerio): recordInfo {
   const { name, code } = parseStationNameAndCode(record);
   const arrExpValue = record.find(".arr.exp");
   const arrActValue = record.find(".arr.act");
   const depExpValue = record.find(".dep.exp");
   const depActValue = record.find(".dep.act");
-  const arrValueExists = arrExpValue.length != 0 && arrActValue.length != 0;
-  const depValueExists = depExpValue.length != 0 && depActValue.length != 0;
-  const platform = record.find(".platform").text();
+  const arrValueExists = arrExpValue.length != 0 || arrActValue.length != 0;
+  const depValueExists = depExpValue.length != 0 || depActValue.length != 0;
+  console.log(`arrActValueExists: ${arrValueExists}`);
+  console.log(`depValueExists: ${depValueExists}`);
+  let platform;
+  if (record.find(".platform").text().length != 0) {
+    platform = record.find(".platform").text();
+  } else {
+    platform = null;
+  }
   const delay = getDelay(record);
   const stopsHere = record.find(".pass").length == 0;
   let commonBodyData: recordInfo["body"] = {
@@ -39,16 +50,16 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
     commonBodyData = {
       ...commonBodyData,
       arrival: {
-        actual: arrActValue.text(),
+        actual: arrActValue.length ? arrActValue.text().trim() : null,
         scheduled: arrExpValue.length
-          ? record.find(".wtt .dep").text()
-          : arrExpValue.text(),
+          ? arrExpValue.text()
+          : record.find(".wtt .arr").text(),
       },
       departure: {
-        actual: depActValue.text(),
+        actual: depActValue ? depActValue.text().trim() : null,
         scheduled: depExpValue.length
-          ? record.find(".wtt .dep").text()
-          : depExpValue.text(),
+          ? depExpValue.text()
+          : record.find(".wtt .dep").text(),
       },
     };
   }
@@ -56,11 +67,15 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
     //return without departure
     commonBodyData = {
       ...commonBodyData,
+      arrival: {
+        actual: null,
+        scheduled: null,
+      },
       departure: {
-        actual: depActValue.text(),
+        actual: depActValue ? depActValue.text().trim() : null,
         scheduled: depExpValue.length
-          ? record.find(".wtt .dep").text()
-          : depExpValue.text(),
+          ? depExpValue.text()
+          : record.find(".wtt .dep").text().trim(),
       },
     };
   }
@@ -70,11 +85,37 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
       arrival: {
         actual: arrActValue.text(),
         scheduled: arrExpValue.length
-          ? record.find(".wtt .arr").text()
-          : arrExpValue.text(),
+          ? arrExpValue.text()
+          : record.find(".wtt .arr").text().trim(),
+      },
+      departure: {
+        actual: null,
+        scheduled: null,
       },
     };
   }
-  let hiddenData: recordInfo["hidden"] = {};
+  if (!arrValueExists && !depValueExists) {
+    commonBodyData = {
+      ...commonBodyData,
+      arrival: {
+        actual: null,
+        scheduled: null,
+      },
+      departure: {
+        actual: null,
+        scheduled: null,
+      },
+    };
+  }
+  let hiddenData: recordInfo["hidden"];
+  if (record.find(".platint").length) {
+    hiddenData = {
+      badgeText: record.find(".platint").text(),
+    };
+  } else {
+    hiddenData = {
+      badgeText: "",
+    };
+  }
   return { body: commonBodyData, hidden: hiddenData };
 }
