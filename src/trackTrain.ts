@@ -67,10 +67,10 @@ export function originExists(origin: cheerio.Cheerio | null) {
   return true;
 }
 export function destinationReached(
-  lastActioned: cheerio.Cheerio,
-  destination: cheerio.Cheerio
+  lastActioned: cheerio.Cheerio | null,
+  destination: cheerio.Cheerio | null
 ) {
-  if (lastActioned.find(".name").text() == destination.find(".name").text()) {
+  if (lastActioned?.find(".name").text() == destination?.find(".name").text()) {
     return true;
   }
   return false;
@@ -94,9 +94,27 @@ export function findAction(
 ): cheerio.Cheerio | null {
   //there could be a status
   const badge: cheerio.Cheerio = locationList.find(".platint");
-  const actualMovement: cheerio.Cheerio = locationList.find(".dep.act").length
-    ? locationList.find(".dep.act").last()
-    : locationList.find(".arr.act").last();
+  const lastArr = locationList.find(".arr.act").last();
+  const lastArrDepSibling = lastArr.siblings(".dep.act");
+  let actualMovement: cheerio.Cheerio;
+  //if there is an arrival
+  if (lastArr.length) {
+    //if there is a departure sibling
+    if (lastArrDepSibling.length) {
+      //the movement is this departure sibling
+      actualMovement = lastArrDepSibling;
+    } else {
+      //the movement is this arrival
+      actualMovement = lastArr;
+    }
+  } else {
+    actualMovement = locationList.find(".dep.act").last();
+  }
+  // const actualMovement: cheerio.Cheerio = locationList.find(".arr.act").length
+  //   ? locationList.find(".dep.act").last().length
+  //     ? locationList.find(".dep.act").last()
+  //     : locationList.find(".arr.act").last()
+  //   : locationList.find(".dep.act").last();
   //if there is a badge
   if (badge.length != 0) {
     return badge;
@@ -117,7 +135,8 @@ export const variables = function ($: cheerio.Root) {
   const records = $(".location.call.public");
   const firstDepExp = $(".dep.exp").first();
   const locationList = $(".locationlist");
-  const lastArrAct = $(".arr.act").last();
+  const lastArrAct: cheerio.Cheerio = $(".arr.act").last();
+  const lastDepExp: cheerio.Cheerio = $(".dep.act").last();
   const lastArrExp = $(".arr.exp").last();
   let origin: cheerio.Cheerio | null;
   if (firstDepAct.length != 0 && firstDepExp.length != 0) {
@@ -139,6 +158,7 @@ export const variables = function ($: cheerio.Root) {
     firstDepAct: firstDepAct,
     records: records,
     firstDepExp: firstDepExp,
+    lastDepExp: lastDepExp,
     locationList: locationList,
     lastArrAct: lastArrAct,
     lastArrExp: lastArrExp,

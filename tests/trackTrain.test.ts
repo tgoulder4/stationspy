@@ -19,6 +19,7 @@ import {
   getRecordObj,
   variables,
   locationListExists,
+  destinationReached,
 } from "../src/trackTrain";
 //  && lastActioned.find(".pass").length!=0
 describe("primitives: getCurrentState", () => {
@@ -120,6 +121,23 @@ describe("primitives: getCurrentState", () => {
       ).toStrictEqual($(".originRecord").html());
     });
   });
+  describe("destinationReached", () => {
+    test("destinationReached -> true (ReachedDestination)", async () => {
+      const html = await reachedDestination();
+      const $ = cheerio.load(html);
+      const { destination, lastActioned } = variables($);
+      expect(destinationReached(lastActioned, destination)).toBeTruthy();
+    });
+    test("destinationReached -> false (cancelled)", async () => {
+      const html = await notYetDeparted();
+      const $ = cheerio.load(html);
+      const { destination, lastActioned } = variables($);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(destinationReached(lastActioned, destination)).toBeFalsy();
+    });
+  });
   describe("destination", () => {
     test("destination -> isCorrect (partiallyCancelled)", async () => {
       const html = await partiallyCancelled();
@@ -172,9 +190,6 @@ describe("primitives: getCurrentState", () => {
       const html = await passedPassStation();
       const $ = cheerio.load(html);
       const { locationList } = variables($);
-      // console.log("findOrigin -> (not departed):");
-      // console.log(findOrigin($).html());
-      // console.log($(".originRecord").html());
       expect(findAction(locationList)!.length).toBe(1);
       expect(findAction(locationList)!.text().trim()).toBe("2236¾");
     });
@@ -187,6 +202,13 @@ describe("primitives: getCurrentState", () => {
       // console.log($(".originRecord").html());
       expect(findAction(locationList)!.length).toBe(1);
       expect(findAction(locationList)!.text().trim()).toBe("Arriving");
+    });
+    test("findAction -> exists reachedDestination (reachedDestination)", async () => {
+      const html = await reachedDestination();
+      const $ = cheerio.load(html);
+      const { locationList } = variables($);
+      expect(findAction(locationList)!.length).toBe(1);
+      expect(findAction(locationList)!.text().trim()).toBe("2309");
     });
     test("findAction -> exists approaching (approachingPass)", async () => {
       const html = await approachingAPass();
