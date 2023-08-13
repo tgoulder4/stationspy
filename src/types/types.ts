@@ -12,8 +12,8 @@ export type recordInfo = {
     departure?: Timing;
     stopsHere: boolean;
   };
-  hidden?: {
-    badge: string;
+  hidden: {
+    badgeText: string;
   };
 };
 export type state = {
@@ -22,7 +22,6 @@ export type state = {
     station: recordInfo["body"];
     // nextStations: nextStations,
     destination: recordInfo["body"];
-    delay: number;
   };
   hidden: {
     update_type: string;

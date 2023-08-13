@@ -60,75 +60,91 @@ export async function getHTML(serviceID, date): Promise<string> {
   let html = await response.text();
   return html;
 }
-export function availableRouteCheck(
-  $,
-  firstDepAct: cheerio.Cheerio,
-  firstDepExp: cheerio.Cheerio
-) {
-  if (firstDepAct.length == 0 && firstDepExp.length == 0) {
+export function originExists(origin: cheerio.Cheerio | null) {
+  if (origin == null) {
     return false;
   }
   return true;
 }
-export function journeyNotFound($: cheerio.Root) {
-  if ($(".info h3").text() == "Not found") {
-    //return error update
+export function destinationReached(
+  lastActioned: cheerio.Cheerio,
+  destination: cheerio.Cheerio
+) {
+  if (lastActioned.find(".name").text() == destination.find(".name").text()) {
     return true;
   }
+  return false;
 }
-export function findOrigin(
-  $,
-  firstDepAct: cheerio.Cheerio,
-  firstDepExp: cheerio.Cheerio
-): cheerio.Cheerio {
-  //first check act, if none then exp would be the origin
-  return getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
-}
-export function findDestination(lastArrAct, lastArrExp) {
-  //find last arr.act or arr.exp
-  return getRecordObj(lastArrAct.length ? lastArrAct : lastArrExp);
+export function badgeExists(lastActioned: cheerio.Cheerio) {
+  if (lastActioned.find(".platint").length != 0) {
+    return true;
+  }
+  return false;
 }
 export function getRecordObj(
-  someLocationChild: cheerio.Cheerio
-): cheerio.Cheerio {
-  return someLocationChild.parents(".location").last();
+  someLocationChild: cheerio.Cheerio | null
+): cheerio.Cheerio | null {
+  if (someLocationChild) {
+    return someLocationChild.parents(".location").last();
+  }
+  return null;
 }
-export function findActioning(
+export function findAction(
   locationList: cheerio.Cheerio
 ): cheerio.Cheerio | null {
   //there could be a status
   const badge: cheerio.Cheerio = locationList.find(".platint");
-  const actualMovement: cheerio.Cheerio = locationList.find(".act").last();
+  const actualMovement: cheerio.Cheerio = locationList.find(".arr.act").length
+    ? locationList.find(".dep.act").last()
+    : locationList.find(".arr.act").last();
   //if there is a badge
   if (badge.length != 0) {
-    //return the whole location object
-    return getRecordObj(badge);
+    return badge;
   }
-  //if there is movement (rt departure, arrival)
   if (actualMovement.length != 0) {
-    return getRecordObj(actualMovement);
+    return actualMovement;
   }
   return null; //no movement
 }
-export const trackTrainVariables = function ($: cheerio.Root) {
+export function locationListExists($: cheerio.Root) {
+  if ($(".locationlist").length == 0) {
+    return false;
+  }
+  return true;
+}
+export function originIsNull(origin: cheerio.Cheerio | null) {
+  return !origin;
+}
+export function destinationIsNull(destination: cheerio.Cheerio | null) {
+  return !destination;
+}
+
+export function lastActionedIsNull(lastActioned: cheerio.Cheerio | null) {
+  return !lastActioned;
+}
+export const variables = function ($: cheerio.Root) {
   const firstDepAct = $(".dep.act").first();
   const records = $(".location.call.public");
   const firstDepExp = $(".dep.exp").first();
   const locationList = $(".locationlist");
   const lastArrAct = $(".arr.act").last();
   const lastArrExp = $(".arr.exp").last();
-  const origin = findOrigin($, firstDepAct, firstDepExp);
-  const infoOrigin = getInfo(origin);
-  const lastActioned: cheerio.Cheerio | null = findActioning(locationList);
-  let infoLastActioned: recordInfo;
-  let infoLastActionedBody: recordInfo["body"];
-  if (lastActioned != null) {
-    infoLastActioned = getInfo(lastActioned);
-    infoLastActionedBody = infoLastActioned.body;
+  let origin: cheerio.Cheerio | null;
+  if (firstDepAct.length != 0 && firstDepExp.length != 0) {
+    origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
+  } else {
+    origin = null;
   }
-  const destination = findDestination(lastArrAct, lastArrExp);
-  const infoDestination: recordInfo = getInfo(destination);
-  const infoDestinationBody: recordInfo["body"] = infoDestination.body;
+  const lastActioned: cheerio.Cheerio | null = getRecordObj(
+    findAction(locationList)
+  );
+
+  let destination: cheerio.Cheerio | null;
+  if (lastArrAct.length != 0 || lastArrExp.length != 0) {
+    destination = getRecordObj(lastArrAct.length ? lastArrAct : lastArrExp);
+  } else {
+    destination = null;
+  }
   return {
     firstDepAct: firstDepAct,
     records: records,
@@ -137,66 +153,47 @@ export const trackTrainVariables = function ($: cheerio.Root) {
     lastArrAct: lastArrAct,
     lastArrExp: lastArrExp,
     origin: origin,
-    infoOrigin: infoOrigin,
-    lastActioned: lastActioned,
-    infoLastActioned: infoLastActioned,
-    infoLastActionedBody: infoLastActionedBody,
     destination: destination,
-    infoDestination: infoDestination,
-    infoDestinationBody: infoDestinationBody,
+    lastActioned: lastActioned,
   };
 };
-//
+//END UNIT TESTS
 //get state of train given html cheerio object
 function getCurrentState($: cheerio.Root): state | error {
-  //service not found
-  if (journeyNotFound($)) {
-    return errorObject("Not found", "Please enter a valid station code.");
+  //if no locationlist
+  if (!locationListExists($)) {
+    return errorObject(
+      "Error",
+      "locationlist element not found. Check service ID."
+    );
   }
-  //START UNIT TEST: availableRouteCheck
-  const {
-    firstDepAct,
-    firstDepExp,
-    locationList,
-    lastArrAct,
-    lastArrExp,
-    origin,
-    infoOrigin,
-    lastActioned,
-    destination,
-    infoDestination,
-    infoDestinationBody,
-  } = trackTrainVariables($);
-  if (!availableRouteCheck($, firstDepAct, firstDepExp)) {
-    return errorObject("No available route", $(".callout").text());
+  const { origin, lastActioned, destination } = variables($);
+  //if no origin
+  if (originIsNull(origin) || destinationIsNull(destination)) {
+    return errorObject("No route.\n", $(".callout").text());
   }
-
-  //if lastActioned is falsy
-  if (!lastActioned) {
+  //if no lastActioned
+  if (lastActionedIsNull(lastActioned)) {
     return stateObject(
       "Not departed",
-      infoOrigin.body,
-      infoDestination.body,
+      getInfo(origin!).body,
+      getInfo(destination!).body,
       "continue"
     );
   }
-  if (infoLastActionedBody.name == infoDestinationBody.name) {
-    return stateObject(
-      "Reached destination",
-      infoOrigin.body,
-      infoDestination.body,
-      "end",
-      infoLastActionedBody.delay
-    );
+  //if destination reached
+  if (destinationReached(lastActioned!, destination!)) {
+    const dest = getInfo(destination!);
+    return stateObject("Reached destination", dest.body, dest.body, "end");
   }
   //if there's a badge
-  if (infoLastActioned.hidden?.badge) {
+  if (badgeExists(lastActioned!)) {
+    const lastA = getInfo(lastActioned!);
     return stateObject(
-      infoLastActioned.hidden.badge,
-      infoLastActionedBody,
-      infoDestination.body,
-      "continue",
-      infoLastActionedBody.delay
+      lastA.hidden.badgeText,
+      lastA.body,
+      getInfo(destination!).body,
+      "continue"
     );
   }
   //if a departure element exists
@@ -210,57 +207,59 @@ function getCurrentState($: cheerio.Root): state | error {
     infoLastActionedBody.arrival?.scheduled
   );
   //if arr,dep,stopshere
-  if (isArrival && isDeparture && infoLastActionedBody.stopsHere) {
+  if (isArrival && isDeparture && lastActioned!.find(".pass").length == 0) {
     return stateObject(
       "Departed",
-      infoLastActionedBody,
-      infoDestinationBody,
-      "continue",
-      infoLastActioned.body.delay
+      getInfo(lastActioned!).body,
+      getInfo(destination!).body,
+      "continue"
     );
   }
   //if dep,!stopshere
-  if (isDeparture && !isArrival && !infoLastActionedBody.stopsHere) {
+  if (isDeparture && !isArrival && lastActioned!.find(".pass").length != 0) {
     return stateObject(
       "Passed",
-      infoLastActionedBody,
-      infoDestinationBody,
-      "continue",
-      infoLastActioned.body.delay
+      getInfo(lastActioned!).body,
+      getInfo(destination!).body,
+      "continue"
     );
   }
   //if dep, !stopshere
-  if (!isArrival && !isDeparture) {
+  if (!isArrival && !isDeparture && lastActioned!.find(".pass").length != 0) {
     return stateObject(
-      "Cancelled",
-      infoLastActionedBody,
-      infoDestinationBody,
-      "continue",
-      infoLastActioned.body.delay
+      "Departed - No report",
+      getInfo(lastActioned!).body,
+      getInfo(destination!).body,
+      "continue"
     );
   }
-  function stateObject(
-    _status: string,
-    _station: recordInfo["body"],
-    _destination: recordInfo["body"],
-    _action: string,
-    _delay?: number
-  ): state {
-    return {
-      body: {
-        status: _status,
-        station: _station,
-        destination: _destination,
-        delay: _delay,
-      },
-      hidden: {
-        update_type: "journey",
-        action: _action,
-      },
-    };
+  if (!isArrival && !isDeparture && lastActioned!.find(".pass").length == 0) {
+    return stateObject(
+      "Passed - No report",
+      getInfo(lastActioned!).body,
+      getInfo(destination!).body,
+      "continue"
+    );
   }
 }
-
+function stateObject(
+  _status: string,
+  _station: recordInfo["body"],
+  _destination: recordInfo["body"],
+  _action: string
+): state {
+  return {
+    body: {
+      status: _status,
+      station: _station,
+      destination: _destination,
+    },
+    hidden: {
+      update_type: "journey",
+      action: _action,
+    },
+  };
+}
 //update to train state
 function emitUpdate(emitter, stateUpdate) {
   //if it's a journey update

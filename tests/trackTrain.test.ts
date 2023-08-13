@@ -13,135 +13,131 @@ import {
 } from "./testHTMLData";
 import {
   getHTML,
-  availableRouteCheck,
-  journeyNotFound,
-  findOrigin,
-  findActioning,
-  findDestination,
+  findAction,
   getRecordObj,
-  trackTrainVariables,
+  variables,
+  locationListExists,
+  originIsNull,
 } from "../src/trackTrain";
-
-describe("getCurrentState dependencies", () => {
-  describe("availableRouteCheck", () => {
-    test("availableRoute -> false (cancelled service)", async () => {
-      const html = await serviceCancelled();
-      const $ = cheerio.load(html);
-      expect(
-        availableRouteCheck($, $(".dep.act").first(), $(".dep.exp").first())
-      ).toBeFalsy();
-    });
-    test("availableRoute -> false (404)", async () => {
+//  && lastActioned.find(".pass").length!=0
+describe("primitives: getCurrentState", () => {
+  describe("locationListExists", () => {
+    test("locationListExists -> false (404)", async () => {
       const html = await journeyNotFoundTest();
       const $ = cheerio.load(html);
-      expect(
-        availableRouteCheck($, $(".dep.act").first(), $(".dep.exp").first())
-      ).toBeFalsy();
+      expect(locationListExists($)).toBeFalsy();
     });
-    test("availableRoute -> true (standard)", async () => {
+    test("locationListExists -> true (standard)", async () => {
       const html = await departedStoppingStation();
       const $ = cheerio.load(html);
-      expect(
-        availableRouteCheck($, $(".dep.act").first(), $(".dep.exp").first())
-      ).toBeTruthy();
+      expect(locationListExists($)).toBeTruthy();
     });
   });
-  describe("journeyNotFound", () => {
-    test("notFoundCheck -> true (404)", async () => {
+  describe("originIsNull", () => {
+    test("originIsNull -> true (404)", async () => {
       const html = await journeyNotFoundTest();
       const $ = cheerio.load(html);
-      expect(journeyNotFound($)).toBeTruthy();
+      const { origin } = variables($);
+      expect(originIsNull(origin)).toBeTruthy();
     });
-    test("notFoundCheck -> false (standard)", async () => {
+    test("originIsNull -> true (cancelled)", async () => {
+      const html = await serviceCancelled();
+      const $ = cheerio.load(html);
+      const { origin } = variables($);
+      expect(originIsNull(origin)).toBeTruthy();
+    });
+    test("originIsNull -> false (standard)", async () => {
       const html = await departedStoppingStation();
       const $ = cheerio.load(html);
-      expect(journeyNotFound($)).toBeFalsy();
+      const { origin } = variables($);
+      expect(originIsNull(origin)).toBeFalsy();
     });
   });
   describe("getHTML", () => {
     test("getHTML -> truthy (any service ID)", async () => {
-      expect(getHTML("testServiceID", "2023-01-01")).toBeTruthy();
+      expect(await getHTML("testServiceID", "2023-01-01")).toBeTruthy();
     });
   });
   describe("getRecordObj", () => {
-    test("getRecordObj -> finds .location parent (transit) findOrigin dependent", async () => {
+    test("getRecordObj -> exists", async () => {
       const html = await departedStoppingStation();
-      const $: cheerio.Root = cheerio.load(html);
-      const { firstDepAct, firstDepExp } = trackTrainVariables($);
+      const $ = cheerio.load(html);
+      const { firstDepAct } = variables($);
       // console.log($(".actioningRecord").html());
       // console.log(getRecordObj($, $(".dep.act").last()).html());
-      expect(
-        getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp).html()
-      ).toStrictEqual($(".originRecord").html());
+      expect(getRecordObj(firstDepAct)?.html()).toStrictEqual(
+        $(".originRecord").html()
+      );
     });
   });
   describe("findOrigin", () => {
     test("findOrigin -> departed (transit)", async () => {
       const html = await departedStoppingStation();
       const $ = cheerio.load(html);
-      const { firstDepAct, firstDepExp } = trackTrainVariables($);
+      const { firstDepAct, firstDepExp } = variables($);
       // console.log("findOrigin -> departed (transit):");
       // console.log(findOrigin($).html());
       // console.log($(".originRecord").html());
-      expect(findOrigin($, firstDepAct, firstDepExp).length).toBe(1);
-      expect(findOrigin($, firstDepAct, firstDepExp).html()).toStrictEqual(
-        $(".originRecord").html()
-      );
+      expect(
+        getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.length
+      ).toBe(1);
+      expect(
+        getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.html()
+      ).toStrictEqual($(".originRecord").html());
     });
     test("findOrigin -> non-existent (cancelled)", async () => {
       const html = await serviceCancelled();
       const $ = cheerio.load(html);
-      const { firstDepAct, firstDepExp } = trackTrainVariables($);
+      const { firstDepAct, firstDepExp } = variables($);
       // console.log("findOrigin -> non-existent (cancelled):");
       // console.log(findOrigin($).html());
-      expect(findOrigin($, firstDepAct, firstDepExp).length).toBe(0);
+      expect(
+        getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.length
+      ).toBe(0);
     });
-    test("findOrigin -> (not departed)", async () => {
+    test("findOrigin -> exists (not departed)", async () => {
       const html = await notYetDeparted();
       const $ = cheerio.load(html);
-      const { firstDepAct, firstDepExp } = trackTrainVariables($);
+      const { firstDepAct, firstDepExp } = variables($);
       // console.log("findOrigin -> (not departed):");
       // console.log(findOrigin($).html());
       // console.log($(".originRecord").html());
-      expect(findOrigin($, firstDepAct, firstDepExp).length).toBe(1);
-      expect(findOrigin($, firstDepAct, firstDepExp).html()).toStrictEqual(
-        $(".originRecord").html()
-      );
+      expect(
+        getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.length
+      ).toBe(1);
+      expect(
+        getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.html()
+      ).toStrictEqual($(".originRecord").html());
     });
   });
-  describe("findActioningRecord", () => {
-    test("findActioningRecord -> (departedStopping)", async () => {
+  describe("findAction", () => {
+    test("findAction -> (departedStopping)", async () => {
       const html = await departedStoppingStation();
       const $ = cheerio.load(html);
-      const { locationList } = trackTrainVariables($);
+      const { locationList } = variables($);
       // console.log("findOrigin -> departed (transit):");
       // console.log(findOrigin($).html());
       // console.log($(".originRecord").html());
-      expect(findActioning(locationList)?.length).toBe(1);
-      expect(findActioning(locationList)?.html()).toStrictEqual(
-        $(".actioningRecord").html()
-      );
+      expect(findAction(locationList)?.length).toBe(1);
+      expect(findAction(locationList)?.text().trim()).toBe("1552");
     });
-    test("findActioningRecord -> null (not departed)", async () => {
+    test("findAction -> null (not departed)", async () => {
       const html = await notYetDeparted();
       const $ = cheerio.load(html);
-      const { locationList } = trackTrainVariables($);
+      const { locationList } = variables($);
       // console.log("findOrigin -> non-existent (cancelled):");
       // console.log(findOrigin($).html());
-      expect(findActioning(locationList)?.length).toBeUndefined();
-      expect(findActioning(locationList)).toBeNull();
+      expect(findAction(locationList)).toBeNull();
     });
-    test("findActioningRecord -> (passedPass)", async () => {
+    test("findAction -> (passedPass)", async () => {
       const html = await passedPassStation();
       const $ = cheerio.load(html);
-      const { locationList } = trackTrainVariables($);
+      const { locationList } = variables($);
       // console.log("findOrigin -> (not departed):");
       // console.log(findOrigin($).html());
       // console.log($(".originRecord").html());
-      expect(findActioning(locationList)?.length).toBe(1);
-      expect(findActioning(locationList)?.html()).toStrictEqual(
-        $(".actioningRecord").html()
-      );
+      expect(findAction(locationList)!.length).toBe(1);
+      expect(findAction(locationList)!.text().trim()).toBe("2236¾");
     });
   });
 });

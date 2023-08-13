@@ -9,7 +9,7 @@ export function parseStationNameAndCode(record: cheerio.Cheerio) {
     .match(/^(.+?)(?:\s(\[\w+\]))?$/);
   //regex is correct
   if (!match) {
-    throw new Error("Regex is incorrect");
+    throw new Error("Match was null");
   }
   return {
     name: match[1].trimEnd(),
@@ -17,36 +17,6 @@ export function parseStationNameAndCode(record: cheerio.Cheerio) {
   };
 }
 export default function getInfo(record: cheerio.Cheerio): recordInfo {
-  ////// following code is from src\trackTrain.ts, use as a guide
-  // if (isArrival && isDeparture && infoLastActionedBody.stopsHere) {
-  //   return stateObject(
-  //     "Departed",
-  //     [[infoLastActionedBody]],
-  //     [[infoDestination.body]],
-  //     "continue",
-  //     [[infoLastActioned.body.delay]]
-  //   );
-  // }
-  // //if dep,!stopshere
-  // if (isDeparture && !isArrival && !infoLastActionedBody.stopsHere) {
-  //   return stateObject(
-  //     "Passed",
-  //     [[infoLastActionedBody]],
-  //     [[infoDestination.body]],
-  //     "continue",
-  //     [[infoLastActioned.body.delay]]
-  //   );
-  // }
-  // //if dep, !stopshere
-  // if (!isArrival && !isDeparture) {
-  //   return stateObject(
-  //     "Cancelled",
-  //     [[infoLastActionedBody]],
-  //     [[infoDestination.body]],
-  //     "continue",
-  //     [[infoLastActioned.body.delay]]
-  //   );
-  // }
   const { name, code } = parseStationNameAndCode(record);
   const arrExpValue = record.find(".arr.exp");
   const arrActValue = record.find(".arr.act");
@@ -57,7 +27,7 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
   const platform = record.find(".platform").text();
   const delay = getDelay(record);
   const stopsHere = record.find(".pass").length == 0;
-  let commonData: recordInfo["body"] = {
+  let commonBodyData: recordInfo["body"] = {
     name: name,
     code: code,
     platform: platform,
@@ -66,8 +36,8 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
   };
   //if no dep values
   if (arrValueExists && depValueExists) {
-    commonData = {
-      ...commonData,
+    commonBodyData = {
+      ...commonBodyData,
       arrival: {
         actual: arrActValue.text(),
         scheduled: arrExpValue.length
@@ -84,8 +54,8 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
   }
   if (!arrValueExists && depValueExists) {
     //return without departure
-    commonData = {
-      ...commonData,
+    commonBodyData = {
+      ...commonBodyData,
       departure: {
         actual: depActValue.text(),
         scheduled: depExpValue.length
@@ -95,8 +65,8 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
     };
   }
   if (arrValueExists && !depValueExists) {
-    commonData = {
-      ...commonData,
+    commonBodyData = {
+      ...commonBodyData,
       arrival: {
         actual: arrActValue.text(),
         scheduled: arrExpValue.length
@@ -105,5 +75,5 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
       },
     };
   }
-  return { body: { commonData }, hidden: {} };
+  return { body: commonBodyData, hidden: {} };
 }
