@@ -2,7 +2,7 @@ const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
-import getInfo from "./getInfo";
+import { getInfo } from "./getInfo";
 import { error, state, recordInfo } from "./types/types";
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.

@@ -223,7 +223,7 @@ describe("primitives: getCurrentState", () => {
     });
   });
   describe("getInfo", () => {
-    test("getInfo -> (departedStopping)", async () => {
+    test("getInfo -> (passedPass)", async () => {
       const html = await passedPassStation();
       const $ = cheerio.load(html);
       // console.log("findOrigin -> departed (transit):");
@@ -241,6 +241,27 @@ describe("primitives: getCurrentState", () => {
         },
         hidden: {
           badgeText: "",
+        },
+      });
+    });
+    test("getInfo -> (arriving)", async () => {
+      const html = await arriving();
+      const $ = cheerio.load(html);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(getInfo($(".actioningRecord"))).toStrictEqual({
+        body: {
+          name: "Birmingham Moor Street",
+          code: "[BMO]",
+          arrival: { actual: "1555", scheduled: "1555½" },
+          platform: "2",
+          delay: 0,
+          departure: { actual: null, scheduled: "1557" },
+          stopsHere: true,
+        },
+        hidden: {
+          badgeText: "Arriving",
         },
       });
     });

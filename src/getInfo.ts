@@ -52,14 +52,14 @@ export function getInfo(record: cheerio.Cheerio): recordInfo {
       arrival: {
         actual: arrActValue.length ? arrActValue.text().trim() : null,
         scheduled: arrExpValue.length
-          ? arrExpValue.text()
-          : record.find(".wtt .arr").text(),
+          ? arrExpValue.text().trim()
+          : record.find(".wtt .arr").text().trim(),
       },
       departure: {
-        actual: depActValue ? depActValue.text().trim() : null,
+        actual: depActValue.length ? depActValue.text().trim() : null,
         scheduled: depExpValue.length
-          ? depExpValue.text()
-          : record.find(".wtt .dep").text(),
+          ? depExpValue.text().trim()
+          : record.find(".wtt .dep").text().trim(),
       },
     };
   }
@@ -72,9 +72,9 @@ export function getInfo(record: cheerio.Cheerio): recordInfo {
         scheduled: null,
       },
       departure: {
-        actual: depActValue ? depActValue.text().trim() : null,
+        actual: depActValue.length ? depActValue.text().trim() : null,
         scheduled: depExpValue.length
-          ? depExpValue.text()
+          ? depExpValue.text().trim()
           : record.find(".wtt .dep").text().trim(),
       },
     };
@@ -85,7 +85,7 @@ export function getInfo(record: cheerio.Cheerio): recordInfo {
       arrival: {
         actual: arrActValue.text(),
         scheduled: arrExpValue.length
-          ? arrExpValue.text()
+          ? arrExpValue.text().trim()
           : record.find(".wtt .arr").text().trim(),
       },
       departure: {
