@@ -10,6 +10,8 @@ import {
   arriving,
   journeyNotFoundTest,
   notYetDeparted,
+  approachingAPass,
+  partiallyCancelled,
 } from "./testHTMLData";
 import {
   getHTML,
@@ -17,7 +19,6 @@ import {
   getRecordObj,
   variables,
   locationListExists,
-  originIsNull,
 } from "../src/trackTrain";
 //  && lastActioned.find(".pass").length!=0
 describe("primitives: getCurrentState", () => {
@@ -38,28 +39,28 @@ describe("primitives: getCurrentState", () => {
       const html = await journeyNotFoundTest();
       const $ = cheerio.load(html);
       const { origin } = variables($);
-      expect(originIsNull(origin)).toBeTruthy();
+      expect(!origin).toBeTruthy();
     });
     test("originIsNull -> true (cancelled)", async () => {
       const html = await serviceCancelled();
       const $ = cheerio.load(html);
       const { origin } = variables($);
-      expect(originIsNull(origin)).toBeTruthy();
+      expect(!origin).toBeTruthy();
     });
     test("originIsNull -> false (standard)", async () => {
       const html = await departedStoppingStation();
       const $ = cheerio.load(html);
       const { origin } = variables($);
-      expect(originIsNull(origin)).toBeFalsy();
+      expect(!origin).toBeFalsy();
     });
   });
   describe("getHTML", () => {
-    test("getHTML -> truthy (any service ID)", async () => {
+    test("getHTML -> exists (any service ID)", async () => {
       expect(await getHTML("testServiceID", "2023-01-01")).toBeTruthy();
     });
   });
   describe("getRecordObj", () => {
-    test("getRecordObj -> exists", async () => {
+    test("getRecordObj -> exists (departed)", async () => {
       const html = await departedStoppingStation();
       const $ = cheerio.load(html);
       const { firstDepAct } = variables($);
@@ -69,9 +70,18 @@ describe("primitives: getCurrentState", () => {
         $(".originRecord").html()
       );
     });
+    test("getRecordObj -> exists (approachingPass)", async () => {
+      const html = await approachingAPass();
+      const $ = cheerio.load(html);
+      // console.log($(".actioningRecord").html());
+      // console.log(getRecordObj($, $(".dep.act").last()).html());
+      expect(getRecordObj($(".platint"))?.html()).toStrictEqual(
+        $(".actioningRecord").html()
+      );
+    });
   });
   describe("findOrigin", () => {
-    test("findOrigin -> departed (transit)", async () => {
+    test("findOrigin -> isCorrect (departed)", async () => {
       const html = await departedStoppingStation();
       const $ = cheerio.load(html);
       const { firstDepAct, firstDepExp } = variables($);
@@ -85,7 +95,7 @@ describe("primitives: getCurrentState", () => {
         getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.html()
       ).toStrictEqual($(".originRecord").html());
     });
-    test("findOrigin -> non-existent (cancelled)", async () => {
+    test("findOrigin -> !exists (cancelled)", async () => {
       const html = await serviceCancelled();
       const $ = cheerio.load(html);
       const { firstDepAct, firstDepExp } = variables($);
@@ -95,7 +105,7 @@ describe("primitives: getCurrentState", () => {
         getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.length
       ).toBe(0);
     });
-    test("findOrigin -> exists (not departed)", async () => {
+    test("findOrigin -> isCorrect (not departed)", async () => {
       const html = await notYetDeparted();
       const $ = cheerio.load(html);
       const { firstDepAct, firstDepExp } = variables($);
@@ -108,6 +118,35 @@ describe("primitives: getCurrentState", () => {
       expect(
         getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp)?.html()
       ).toStrictEqual($(".originRecord").html());
+    });
+  });
+  describe("destination", () => {
+    test("destination -> isCorrect (partiallyCancelled)", async () => {
+      const html = await partiallyCancelled();
+      const $ = cheerio.load(html);
+      const { destination } = variables($);
+      // console.log("findOrigin -> departed (transit):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(destination!.length).toBe(1);
+      expect(destination!.html()).toStrictEqual($(".destinationRecord").html());
+    });
+    test("destination -> !exists (cancelled)", async () => {
+      const html = await serviceCancelled();
+      const $ = cheerio.load(html);
+      const { destination } = variables($);
+      // console.log("findOrigin -> non-existent (cancelled):");
+      // console.log(findOrigin($).html());
+      expect(destination).toBeNull();
+    });
+    test("destination -> isCorrect (departedStopping)", async () => {
+      const html = await departedStoppingStation();
+      const $ = cheerio.load(html);
+      const { destination } = variables($);
+      // console.log(`lastArrExp: ${lastArrExp}`);
+      // console.log(`destination: ${destination}`);
+      expect(destination!.length).toBe(1);
+      expect(destination!.html()).toStrictEqual($(".destinationRecord").html());
     });
   });
   describe("findAction", () => {
@@ -118,10 +157,10 @@ describe("primitives: getCurrentState", () => {
       // console.log("findOrigin -> departed (transit):");
       // console.log(findOrigin($).html());
       // console.log($(".originRecord").html());
-      expect(findAction(locationList)?.length).toBe(1);
-      expect(findAction(locationList)?.text().trim()).toBe("1552");
+      expect(findAction(locationList)!.length).toBe(1);
+      expect(findAction(locationList)!.text().trim()).toBe("1552");
     });
-    test("findAction -> null (not departed)", async () => {
+    test("findAction -> !exists (not departed)", async () => {
       const html = await notYetDeparted();
       const $ = cheerio.load(html);
       const { locationList } = variables($);
@@ -129,7 +168,7 @@ describe("primitives: getCurrentState", () => {
       // console.log(findOrigin($).html());
       expect(findAction(locationList)).toBeNull();
     });
-    test("findAction -> (passedPass)", async () => {
+    test("findAction -> exists depNonPass (passedPass)", async () => {
       const html = await passedPassStation();
       const $ = cheerio.load(html);
       const { locationList } = variables($);
@@ -138,6 +177,26 @@ describe("primitives: getCurrentState", () => {
       // console.log($(".originRecord").html());
       expect(findAction(locationList)!.length).toBe(1);
       expect(findAction(locationList)!.text().trim()).toBe("2236¾");
+    });
+    test("findAction -> exists arriving (arrivingStop)", async () => {
+      const html = await arriving();
+      const $ = cheerio.load(html);
+      const { locationList } = variables($);
+      // console.log("findOrigin -> (not departed):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(findAction(locationList)!.length).toBe(1);
+      expect(findAction(locationList)!.text().trim()).toBe("Arriving");
+    });
+    test("findAction -> exists approaching (approachingPass)", async () => {
+      const html = await approachingAPass();
+      const $ = cheerio.load(html);
+      const { locationList } = variables($);
+      // console.log("findOrigin -> (not departed):");
+      // console.log(findOrigin($).html());
+      // console.log($(".originRecord").html());
+      expect(findAction(locationList)!.length).toBe(1);
+      expect(findAction(locationList)!.text().trim()).toBe("Approaching");
     });
   });
 });

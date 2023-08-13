@@ -94,7 +94,7 @@ export function findAction(
 ): cheerio.Cheerio | null {
   //there could be a status
   const badge: cheerio.Cheerio = locationList.find(".platint");
-  const actualMovement: cheerio.Cheerio = locationList.find(".arr.act").length
+  const actualMovement: cheerio.Cheerio = locationList.find(".dep.act").length
     ? locationList.find(".dep.act").last()
     : locationList.find(".arr.act").last();
   //if there is a badge
@@ -111,16 +111,6 @@ export function locationListExists($: cheerio.Root) {
     return false;
   }
   return true;
-}
-export function originIsNull(origin: cheerio.Cheerio | null) {
-  return !origin;
-}
-export function destinationIsNull(destination: cheerio.Cheerio | null) {
-  return !destination;
-}
-
-export function lastActionedIsNull(lastActioned: cheerio.Cheerio | null) {
-  return !lastActioned;
 }
 export const variables = function ($: cheerio.Root) {
   const firstDepAct = $(".dep.act").first();
@@ -141,7 +131,7 @@ export const variables = function ($: cheerio.Root) {
 
   let destination: cheerio.Cheerio | null;
   if (lastArrAct.length != 0 || lastArrExp.length != 0) {
-    destination = getRecordObj(lastArrAct.length ? lastArrAct : lastArrExp);
+    destination = getRecordObj(lastArrExp.length ? lastArrExp : lastArrAct);
   } else {
     destination = null;
   }
@@ -169,11 +159,11 @@ function getCurrentState($: cheerio.Root): state | error {
   }
   const { origin, lastActioned, destination } = variables($);
   //if no origin
-  if (originIsNull(origin) || destinationIsNull(destination)) {
+  if (!origin || !destination) {
     return errorObject("No route.\n", $(".callout").text());
   }
   //if no lastActioned
-  if (lastActionedIsNull(lastActioned)) {
+  if (!lastActioned) {
     return stateObject(
       "Not departed",
       getInfo(origin!).body,
@@ -182,17 +172,17 @@ function getCurrentState($: cheerio.Root): state | error {
     );
   }
   //if destination reached
-  if (destinationReached(lastActioned!, destination!)) {
+  if (destinationReached(lastActioned, destination)) {
     const dest = getInfo(destination!);
     return stateObject("Reached destination", dest.body, dest.body, "end");
   }
   //if there's a badge
-  if (badgeExists(lastActioned!)) {
-    const lastA = getInfo(lastActioned!);
+  if (badgeExists(lastActioned)) {
+    const lastA = getInfo(lastActioned);
     return stateObject(
       lastA.hidden.badgeText,
       lastA.body,
-      getInfo(destination!).body,
+      getInfo(destination).body,
       "continue"
     );
   }
@@ -210,34 +200,34 @@ function getCurrentState($: cheerio.Root): state | error {
   if (isArrival && isDeparture && lastActioned!.find(".pass").length == 0) {
     return stateObject(
       "Departed",
-      getInfo(lastActioned!).body,
-      getInfo(destination!).body,
+      getInfo(lastActioned).body,
+      getInfo(destination).body,
       "continue"
     );
   }
   //if dep,!stopshere
-  if (isDeparture && !isArrival && lastActioned!.find(".pass").length != 0) {
+  if (isDeparture && !isArrival && lastActioned.find(".pass").length != 0) {
     return stateObject(
       "Passed",
-      getInfo(lastActioned!).body,
-      getInfo(destination!).body,
+      getInfo(lastActioned).body,
+      getInfo(destination).body,
       "continue"
     );
   }
   //if dep, !stopshere
-  if (!isArrival && !isDeparture && lastActioned!.find(".pass").length != 0) {
+  if (!isArrival && !isDeparture && lastActioned.find(".pass").length != 0) {
     return stateObject(
       "Departed - No report",
-      getInfo(lastActioned!).body,
-      getInfo(destination!).body,
+      getInfo(lastActioned).body,
+      getInfo(destination).body,
       "continue"
     );
   }
-  if (!isArrival && !isDeparture && lastActioned!.find(".pass").length == 0) {
+  if (!isArrival && !isDeparture && lastActioned.find(".pass").length == 0) {
     return stateObject(
       "Passed - No report",
-      getInfo(lastActioned!).body,
-      getInfo(destination!).body,
+      getInfo(lastActioned).body,
+      getInfo(destination).body,
       "continue"
     );
   }

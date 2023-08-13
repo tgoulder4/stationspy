@@ -75,5 +75,6 @@ export default function getInfo(record: cheerio.Cheerio): recordInfo {
       },
     };
   }
-  return { body: commonBodyData, hidden: {} };
+  let hiddenData: recordInfo["hidden"] = {};
+  return { body: commonBodyData, hidden: hiddenData };
 }
