@@ -8,9 +8,17 @@ import { log } from "console";
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
- * @param {number} timeTillRefresh
+ * @param {string} date The date of the service in YYYY-MM-DD format
+ * @param {number} timeTillRefresh The time in ms between each refresh. Minimum 5000ms.
  */
-export async function trackTrain(serviceID: string, timeTillRefresh = 5000) {
+export async function trackTrain(
+  serviceID: string,
+  date = getCurrentDayTime("YYYY-MM-DD"),
+  timeTillRefresh = 5000
+) {
+  if (timeTillRefresh < 5000) {
+    timeTillRefresh = 5000;
+  }
   let previousState: state | error;
   let currentState: state | error;
   if (!serviceID) {
@@ -18,7 +26,6 @@ export async function trackTrain(serviceID: string, timeTillRefresh = 5000) {
   }
   const trainUpdateEmitter = new EventEmitter();
   //loop here every 5s. 'const loop =' needed for strange js behaviour
-  const date = getCurrentDayTime("YYYY-MM-DD");
   const loop = setInterval(async () => {
     let html = await getHTML(serviceID, date);
 

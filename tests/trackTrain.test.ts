@@ -510,13 +510,13 @@ describe("getCurrentState - all dependent", () => {
   test("getCurrentState -> (passedPass)", async () => {
     const html = await passedPassStation();
     const $ = cheerio.load(html);
-    // console.log(
-    //   util.inspect(getCurrentState($), {
-    //     showHidden: false,
-    //     depth: null,
-    //     colors: true,
-    //   })
-    // );
+    console.log(
+      util.inspect(getCurrentState($), {
+        showHidden: false,
+        depth: null,
+        colors: true,
+      })
+    );
     // expect(getCurrentState($)).toStrictEqual({
     //   body: {
     //     status: "Passed",
@@ -553,13 +553,6 @@ describe("getCurrentState - all dependent", () => {
   test("getCurrentState -> (destinationReached)", async () => {
     const html = await reachedDestination();
     const $ = cheerio.load(html);
-    console.log(
-      util.inspect(getCurrentState($), {
-        showHidden: false,
-        depth: null,
-        colors: true,
-      })
-    );
     expect(getCurrentState($)).toStrictEqual({
       body: {
         status: "Reached destination",

@@ -19,10 +19,14 @@ const console_1 = require("console");
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
- * @param {number} timeTillRefresh
+ * @param {string} date The date of the service in YYYY-MM-DD format
+ * @param {number} timeTillRefresh The time in ms between each refresh. Minimum 5000ms.
  */
-function trackTrain(serviceID, timeTillRefresh = 5000) {
+function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillRefresh = 5000) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (timeTillRefresh < 5000) {
+            timeTillRefresh = 5000;
+        }
         let previousState;
         let currentState;
         if (!serviceID) {
@@ -30,7 +34,6 @@ function trackTrain(serviceID, timeTillRefresh = 5000) {
         }
         const trainUpdateEmitter = new EventEmitter();
         //loop here every 5s. 'const loop =' needed for strange js behaviour
-        const date = getCurrentDayTime("YYYY-MM-DD");
         const loop = setInterval(() => __awaiter(this, void 0, void 0, function* () {
             let html = yield getHTML(serviceID, date);
             let $ = cheerio.load(html);
