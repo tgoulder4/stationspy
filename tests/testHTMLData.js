@@ -22,7 +22,7 @@ const atPlatform = async () => {
     return error;
   }
 };
-const journeyNotFound = async () => {
+const journeyNotFoundTest = async () => {
   // export the html from the test state
   try {
     const response = await fetch(
@@ -63,6 +63,18 @@ const departedStoppingStation = async () => {
   try {
     const response = await fetch(
       "https://tgoulder4.github.io/tests/trainspyTests/transit/1_5departed.html"
+    );
+    const html = await response.text();
+    return html;
+  } catch (error) {
+    return error;
+  }
+};
+const notYetDeparted = async () => {
+  // export the html from the test state
+  try {
+    const response = await fetch(
+      "https://tgoulder4.github.io/tests/trainspyTests/transit/notYetDeparted.html"
     );
     const html = await response.text();
     return html;
@@ -139,13 +151,14 @@ const transitData = {
   passedPassStation,
   reachedDestination,
   passUnknownDelay,
+  notYetDeparted,
 };
 const erronousData = {
-  journeyNotFound,
+  journeyNotFoundTest,
   serviceCancelled,
   partiallyCancelled,
 };
 module.exports = {
-  transitData,
-  erronousData,
+  ...transitData,
+  ...erronousData,
 };
