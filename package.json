@@ -11,6 +11,7 @@
   },
   "scripts": {
     "watch": "nodemon src/index.js",
+    "build": "tsc src/trackTrain.ts src/getInfo.ts",
     "test": "jest",
     "release": "release-it"
   },

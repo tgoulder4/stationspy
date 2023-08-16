@@ -10,7 +10,7 @@ import { log } from "console";
  * @param {string} serviceID
  * @param {number} timeTillRefresh
  */
-async function trackTrain(serviceID, timeTillRefresh = 5000) {
+export async function trackTrain(serviceID: string, timeTillRefresh = 5000) {
   let previousState: state | error;
   let currentState: state | error;
   if (!serviceID) {
@@ -55,7 +55,10 @@ function errorObject(errorString: string, errorDetails: string): error {
   };
 }
 //UNIT TESTS
-export async function getHTML(serviceID, date): Promise<string> {
+export async function getHTML(
+  serviceID: string,
+  date: string
+): Promise<string> {
   //get real data
   let response = await fetch(
     `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`
@@ -95,27 +98,28 @@ export function getRecordObj(
 export function findAction(
   locationList: cheerio.Cheerio
 ): cheerio.Cheerio | null {
+  //returns null when
   //there could be a status
   const badge: cheerio.Cheerio = locationList.find(".platint");
-  const lastArr = locationList.find(".arr.act").last();
-  const lastArrDepSibling = lastArr.siblings(".dep.act");
-  let actualMovement: cheerio.Cheerio;
-  //if there is an arrival
-  if (lastArr.length) {
-    //if there is a departure sibling
-    if (lastArrDepSibling.length) {
-      //the movement is this departure sibling
-      actualMovement = lastArrDepSibling;
-    } else {
-      //the movement is this arrival
-      actualMovement = lastArr;
-    }
-  } else {
-    actualMovement = locationList.find(".dep.act").last();
-  }
   //if there is a badge
   if (badge.length != 0) {
     return badge;
+  }
+  const lastArrAct = locationList.find(".arr.act").last();
+  const lastArrActDepActSibling = lastArrAct.siblings(".dep.act");
+  let actualMovement: cheerio.Cheerio;
+  //if there is an arrival
+  if (lastArrAct.length) {
+    //if there is a departure sibling
+    if (lastArrActDepActSibling.length) {
+      //the movement is this departure sibling
+      actualMovement = lastArrActDepActSibling;
+    } else {
+      //the movement is this arrival
+      actualMovement = lastArrAct;
+    }
+  } else {
+    actualMovement = locationList.find(".dep.act").last();
   }
   if (actualMovement.length != 0) {
     return actualMovement;
@@ -126,11 +130,11 @@ export function getCallingPoints(
   $: cheerio.Root,
   lastActioned: cheerio.Cheerio | null,
   destination: cheerio.Cheerio | null
-) {
-  if (lastActioned && destination) {
+): Array<recordInfo["body"]> | null {
+  if (lastActioned) {
     //const callingPoints = select every element with the class '.location.call.public' from lastActioned until and including the last element with the class '.location.call.public'
     const callingPoints: cheerio.Cheerio = lastActioned
-      .nextUntil(destination)
+      .nextUntil(destination!)
       .filter(".location.call.public");
     if (callingPoints.length == 0) {
       return null;
@@ -139,10 +143,9 @@ export function getCallingPoints(
     callingPoints.each((i, el) => {
       callPoints.push(getInfo($(el)).body);
     });
-    callPoints.push(getInfo(destination).body);
+    callPoints.push(getInfo(destination!).body);
     return callPoints;
   }
-  console.log(`No calling points for info: ${lastActioned} ${destination}`);
   return null;
 }
 export function locationListExists($: cheerio.Root) {
@@ -205,9 +208,22 @@ export function getCurrentState($: cheerio.Root): state | error {
     );
   }
   const { origin, lastActioned, destination, callingPoints } = variables($);
-
+  let dest: recordInfo;
+  //if destination reached
+  if (destination) {
+    dest = getInfo(destination!);
+    if (destinationReached(lastActioned, destination)) {
+      return stateObject(
+        "Reached destination",
+        dest.body,
+        "end",
+        callingPoints
+      );
+    }
+  }
   //if no origin
-  if (!origin || !destination) {
+  if (!origin) {
+    console.log(`Origin: ${origin}, is null. Other values: ${variables($)}`);
     return errorObject(
       "No route. (Service cancelled?)",
       $(".callout p").text()
@@ -221,11 +237,6 @@ export function getCurrentState($: cheerio.Root): state | error {
       "continue",
       callingPoints
     );
-  }
-  //if destination reached
-  const dest: recordInfo = getInfo(destination);
-  if (destinationReached(lastActioned, destination)) {
-    return stateObject("Reached destination", dest.body, "end");
   }
   //if there's a badge
   if (badgeExists(lastActioned)) {
@@ -295,7 +306,7 @@ function stateObject(
   };
 }
 //update to train state
-function emitUpdate(emitter, stateUpdate) {
+function emitUpdate(emitter: typeof EventEmitter, stateUpdate: state | error) {
   //if it's a journey update
   emitter.emit(`${stateUpdate.hidden.update_type}Update`, stateUpdate.body);
 }
