@@ -6,7 +6,10 @@ const getCurrentDayTime = require("./getDayTime");
  * Returns an emitter with live train updates
  * @param {string} stationName Name of the station or station code. E.g. 'WLF' or 'Whittlesford Parkway'
  */
-module.exports = async function findTrains(stationName) {
+module.exports = async function findTrains(
+  stationName,
+  dateOfDeparture = getCurrentDayTime("YYYY-MM-DD")
+) {
   //if stationName is 3 letters, destructure from map
   if (
     (await fetch(
@@ -23,9 +26,9 @@ module.exports = async function findTrains(stationName) {
   }
   const services = [];
   await fetch(
-    `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationName}/${getCurrentDayTime(
-      "YYYY-MM-DD"
-    )}/${getCurrentDayTime("HHmm")}`
+    `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationName}/${dateOfDeparture}/${getCurrentDayTime(
+      "HHmm"
+    )}`
   ).then((res) =>
     res.text().then((data) => {
       const $ = cheerio.load(data);
