@@ -4,23 +4,42 @@ export function getDelay(record: cheerio.Cheerio) {
   if (record.find(".delay.nil").length != 0) {
     return 0;
   }
-  return parseInt(record.find(".delay").text());
+  if (record.find(".delay.rt").length != 0) {
+    return parseInt(record.find(".delay").text());
+  }
+  return 0;
 }
 export function parseStationNameAndCode(stationString: string) {
+  if (!stationString) {
+    throw new Error("stationString was null");
+  }
   const match: RegExpMatchArray | null = stationString.match(
     /^(.+?)(?:\s(\[\w+\]))?$/
   );
-  //regex is correct
-  if (!match) {
-    throw new Error("Match was null");
+  if (match) {
+    console.log(match[1].split(/\s{2,}/).join(" "));
+    const name = match[1].split(/\s{2,}/).join(" ");
+    return {
+      name: name,
+      code: match[2] || null,
+    };
   }
   return {
-    name: match![1].trimEnd(),
-    code: match[2] || null,
+    name: "",
+    code: null,
   };
 }
 export function getInfo(record: cheerio.Cheerio): recordInfo {
-  const { name, code } = parseStationNameAndCode(record.find(".name").text());
+  const { name, code } = parseStationNameAndCode(
+    record
+      .find(".name")
+      .clone() //clone the element
+      .children() //select all the children
+      .remove() //remove all the children
+      .end() //again go back to selected element
+      .text()
+      .trim()
+  );
   const arrExpValue = record.find(".arr.exp");
   const arrActValue = record.find(".arr.act");
   const depExpValue = record.find(".dep.exp");

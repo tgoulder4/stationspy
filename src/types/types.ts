@@ -21,7 +21,7 @@ export type state = {
     status: string;
     station: recordInfo["body"];
     // nextStations: nextStations,
-    destination: recordInfo["body"];
+    callingPoints?: Array<recordInfo["body"]> | null;
   };
   hidden: {
     update_type: string;
