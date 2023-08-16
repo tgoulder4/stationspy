@@ -1,5 +1,5 @@
 # trainspy
-Get departures at any UK train station & recieve updates on trains throughout their journey via a custom made RTT API. 
+Get departures at any UK train station & recieve updates on trains throughout their journey via a custom made Realtimetrains web scraper. 
 
 ## Install trainspy
 ```js
