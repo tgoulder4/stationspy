@@ -39,7 +39,9 @@ async function trackTrain(serviceID, timeTillRefresh = 5000) {
   //return the emitter for subscription
   return trainUpdateEmitter;
 }
-
+class TrackTrain {
+  date = getCurrentDayTime("YYYY-MM-DD");
+}
 function errorObject(errorString: string, errorDetails: string): error {
   return {
     body: {
@@ -122,12 +124,14 @@ export function findAction(
 }
 export function getCallingPoints(
   $: cheerio.Root,
-  lastActioned: cheerio.Cheerio | null
+  lastActioned: cheerio.Cheerio | null,
+  destination: cheerio.Cheerio | null
 ) {
-  if (lastActioned) {
-    const callingPoints: cheerio.Cheerio = lastActioned.nextAll(
-      ".location.call.public"
-    );
+  if (lastActioned && destination) {
+    //const callingPoints = select every element with the class '.location.call.public' from lastActioned until and including the last element with the class '.location.call.public'
+    const callingPoints: cheerio.Cheerio = lastActioned
+      .nextUntil(destination)
+      .filter(".location.call.public");
     if (callingPoints.length == 0) {
       return null;
     }
@@ -135,9 +139,10 @@ export function getCallingPoints(
     callingPoints.each((i, el) => {
       callPoints.push(getInfo($(el)).body);
     });
+    callPoints.push(getInfo(destination).body);
     return callPoints;
   }
-
+  console.log(`No calling points for info: ${lastActioned} ${destination}`);
   return null;
 }
 export function locationListExists($: cheerio.Root) {
@@ -163,16 +168,17 @@ export const variables = function ($: cheerio.Root) {
   const lastActioned: cheerio.Cheerio | null = getRecordObj(
     findAction(locationList)
   );
-  const callingPoints: Array<recordInfo["body"]> | null = getCallingPoints(
-    $,
-    lastActioned
-  );
   let destination: cheerio.Cheerio | null;
   if (lastArrAct.length != 0 || lastArrExp.length != 0) {
     destination = getRecordObj(lastArrExp.length ? lastArrExp : lastArrAct);
   } else {
     destination = null;
   }
+  const callingPoints: Array<recordInfo["body"]> | null = getCallingPoints(
+    $,
+    lastActioned,
+    destination
+  );
 
   return {
     firstDepAct: firstDepAct,
@@ -202,9 +208,11 @@ export function getCurrentState($: cheerio.Root): state | error {
 
   //if no origin
   if (!origin || !destination) {
-    return errorObject("No route.\n", $(".callout").text());
+    return errorObject(
+      "No route. (Service cancelled?)",
+      $(".callout p").text()
+    );
   }
-  const dest: recordInfo = getInfo(destination);
   //if no lastActioned
   if (!lastActioned) {
     return stateObject(
@@ -215,6 +223,7 @@ export function getCurrentState($: cheerio.Root): state | error {
     );
   }
   //if destination reached
+  const dest: recordInfo = getInfo(destination);
   if (destinationReached(lastActioned, destination)) {
     return stateObject("Reached destination", dest.body, "end");
   }

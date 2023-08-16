@@ -17,7 +17,6 @@ export function parseStationNameAndCode(stationString: string) {
     /^(.+?)(?:\s(\[\w+\]))?$/
   );
   if (match) {
-    console.log(match[1].split(/\s{2,}/).join(" "));
     const name = match[1].split(/\s{2,}/).join(" ");
     return {
       name: name,
