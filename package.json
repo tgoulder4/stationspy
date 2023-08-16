@@ -10,7 +10,7 @@
     "htmlparser2": "^9.0.0"
   },
   "scripts": {
-    "watch": "nodemon src/index.js",
+    "watch": "nodemon dist/src/index.js",
     "build": "tsc src/trackTrain.ts src/getInfo.ts",
     "test": "jest",
     "release": "release-it"

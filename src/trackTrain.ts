@@ -223,7 +223,6 @@ export function getCurrentState($: cheerio.Root): state | error {
   }
   //if no origin
   if (!origin) {
-    console.log(`Origin: ${origin}, is null. Other values: ${variables($)}`);
     return errorObject(
       "No route. (Service cancelled?)",
       $(".callout p").text()
