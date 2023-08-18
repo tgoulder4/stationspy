@@ -3,8 +3,7 @@ const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
 import { getInfo } from "./getInfo";
-import { error, state, recordInfo } from "./types/types";
-import { log } from "console";
+import { information, state, recordInfo } from "./types/types";
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
@@ -19,8 +18,8 @@ export async function trackTrain(
   if (timeTillRefresh < 5000) {
     timeTillRefresh = 5000;
   }
-  let previousState: state | error;
-  let currentState: state | error;
+  let previousState: state | information;
+  let currentState: state | information;
   if (!serviceID) {
     return "Enter a service ID.";
   }
@@ -28,7 +27,6 @@ export async function trackTrain(
   //loop here every 5s. 'const loop =' needed for strange js behaviour
   const loop = setInterval(async () => {
     let html = await getHTML(serviceID, date);
-
     let $ = cheerio.load(html);
     //get current state of train as currentState
     currentState = getCurrentState($);
@@ -46,21 +44,47 @@ export async function trackTrain(
   //return the emitter for subscription
   return trainUpdateEmitter;
 }
-class TrackTrain {
-  date = getCurrentDayTime("YYYY-MM-DD");
-}
-function errorObject(errorString: string, errorDetails: string): error {
+function informationObject(
+  informationString: string,
+  informationDetails: string | Object
+): information {
   return {
     body: {
-      error: errorString,
-      details: errorDetails,
+      information: informationString,
+      details: informationDetails,
     },
     hidden: {
-      update_type: "error",
+      update_type: "information",
       action: "end",
     },
   };
 }
+//2-now-tracking
+// trainUpdateEmitter.emit(
+//   "information",
+//   informationObject("Now tracking", {
+//     serviceUID: serviceID,
+//     date: date,
+//     operator: $(".toc div").text() ? $(".toc div").text() : null,
+//     class:
+//       $(".callout.infopanel")
+//         .text()
+//         .match(/Class (\d+)/)?.[1] ||
+//       $(".callout.infopanel")
+//         .text()
+//         .match(/Operated with (\d+)/)?.[1] ||
+//       null,
+//   })
+// );
+// if ($(".callout.primary").length != 0 || $(".callout.alert").length != 0) {
+//   trainUpdateEmitter.emit(
+//     "information",
+//     informationObject(
+//       "Notice",
+//       $(".callout.primary").text() || $(".callout.alert").text()
+//     )
+//   );
+// }
 //UNIT TESTS
 export async function getHTML(
   serviceID: string,
@@ -102,36 +126,27 @@ export function getRecordObj(
   }
   return null;
 }
+//-here-
 export function findAction(
   locationList: cheerio.Cheerio
 ): cheerio.Cheerio | null {
-  //returns null when
-  //there could be a status
-  const badge: cheerio.Cheerio = locationList.find(".platint");
-  //if there is a badge
+  const lastActualValue = locationList.find(".act").last();
+  const lastNoReport = locationList.find(".noreport").last();
+  const badge = locationList.find(".platint");
+
   if (badge.length != 0) {
+    console.log("BADGE FOUND");
     return badge;
   }
-  const lastArrAct = locationList.find(".arr.act").last();
-  const lastArrActDepActSibling = lastArrAct.siblings(".dep.act");
-  let actualMovement: cheerio.Cheerio;
-  //if there is an arrival
-  if (lastArrAct.length) {
-    //if there is a departure sibling
-    if (lastArrActDepActSibling.length) {
-      //the movement is this departure sibling
-      actualMovement = lastArrActDepActSibling;
-    } else {
-      //the movement is this arrival
-      actualMovement = lastArrAct;
-    }
-  } else {
-    actualMovement = locationList.find(".dep.act").last();
+  if (lastActualValue.length != 0) {
+    console.log(`LASTACTUALVALUE: ${lastActualValue} FOUND`);
+    return lastActualValue;
   }
-  if (actualMovement.length != 0) {
-    return actualMovement;
+  if (lastNoReport.length != 0) {
+    console.log("LASTNOREPORT FOUND");
+    return lastNoReport;
   }
-  return null; //no movement
+  return null;
 }
 export function getCallingPoints(
   $: cheerio.Root,
@@ -139,20 +154,19 @@ export function getCallingPoints(
   destination: cheerio.Cheerio | null
 ): Array<recordInfo["body"]> | null {
   if (lastActioned) {
-    //const callingPoints = select every element with the class '.location.call.public' from lastActioned until and including the last element with the class '.location.call.public'
-    const callingPoints: cheerio.Cheerio = lastActioned
-      .nextUntil(destination!)
-      .filter(".location.call.public");
+    const callingPoints: cheerio.Cheerio = lastActioned.nextAll();
     if (callingPoints.length == 0) {
+      console.log("NO CALLING POINTS FROM DOM");
       return null;
     }
     let callPoints: Array<recordInfo["body"]> = [];
     callingPoints.each((i, el) => {
       callPoints.push(getInfo($(el)).body);
     });
-    callPoints.push(getInfo(destination!).body);
+    console.log("RETURNING CALLPOINTS");
     return callPoints;
   }
+  console.log("NO LASTACTIONED");
   return null;
 }
 export function locationListExists($: cheerio.Root) {
@@ -163,14 +177,13 @@ export function locationListExists($: cheerio.Root) {
 }
 export const variables = function ($: cheerio.Root) {
   const firstDepAct = $(".dep.act").first();
-  const records = $(".location.call.public");
   const firstDepExp = $(".dep.exp").first();
   const locationList = $(".locationlist");
   const lastArrAct: cheerio.Cheerio = $(".arr.act").last();
-  const lastDepExp: cheerio.Cheerio = $(".dep.act").last();
+  const lastDepExp: cheerio.Cheerio = $(".dep.exp").last();
   const lastArrExp = $(".arr.exp").last();
   let origin: cheerio.Cheerio | null = null;
-  if (firstDepAct.length != 0 && firstDepExp.length != 0) {
+  if (firstDepAct.length != 0 || firstDepExp.length != 0) {
     origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
   } else {
     origin = null;
@@ -178,12 +191,10 @@ export const variables = function ($: cheerio.Root) {
   const lastActioned: cheerio.Cheerio | null = getRecordObj(
     findAction(locationList)
   );
-  let destination: cheerio.Cheerio | null;
-  if (lastArrAct.length != 0 || lastArrExp.length != 0) {
-    destination = getRecordObj(lastArrExp.length ? lastArrExp : lastArrAct);
-  } else {
-    destination = null;
-  }
+  console.log(`LASTACTIONED: ${lastActioned}`);
+  let destination: cheerio.Cheerio | null =
+    getRecordObj($(".realtime .arr").last()) || null;
+  console.log(`DESTINATION: ${destination}`);
   const callingPoints: Array<recordInfo["body"]> | null = getCallingPoints(
     $,
     lastActioned,
@@ -192,7 +203,6 @@ export const variables = function ($: cheerio.Root) {
 
   return {
     firstDepAct: firstDepAct,
-    records: records,
     firstDepExp: firstDepExp,
     lastDepExp: lastDepExp,
     locationList: locationList,
@@ -206,10 +216,10 @@ export const variables = function ($: cheerio.Root) {
 };
 //END UNIT TESTS
 //get state of train given html cheerio object
-export function getCurrentState($: cheerio.Root): state | error {
+export function getCurrentState($: cheerio.Root): state | information {
   //if no locationlist
   if (!locationListExists($)) {
-    return errorObject(
+    return informationObject(
       "Error",
       "locationlist element not found. Check service ID."
     );
@@ -230,8 +240,8 @@ export function getCurrentState($: cheerio.Root): state | error {
   }
   //if no origin
   if (!origin) {
-    return errorObject(
-      "No route. (Service cancelled?)",
+    return informationObject(
+      "Null origin. (Service cancelled?)",
       $(".callout p").text()
     );
   }
@@ -247,7 +257,6 @@ export function getCurrentState($: cheerio.Root): state | error {
   //if there's a badge
   if (badgeExists(lastActioned)) {
     const lastA = getInfo(lastActioned);
-    log(`lastA: ${lastA}`);
     return stateObject(
       lastA.hidden.badgeText,
       lastA.body,
@@ -312,7 +321,10 @@ function stateObject(
   };
 }
 //update to train state
-function emitUpdate(emitter: typeof EventEmitter, stateUpdate: state | error) {
+function emitUpdate(
+  emitter: typeof EventEmitter,
+  stateUpdate: state | information
+) {
   //if it's a journey update
-  emitter.emit(`${stateUpdate.hidden.update_type}Update`, stateUpdate.body);
+  emitter.emit(`${stateUpdate.hidden.update_type}`, stateUpdate.body);
 }

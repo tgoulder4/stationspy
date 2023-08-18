@@ -14,7 +14,7 @@ export function parseStationNameAndCode(stationString: string) {
     throw new Error("stationString was null");
   }
   const match: RegExpMatchArray | null = stationString.match(
-    /^(.+?)(?:\s(\[\w+\]))?$/
+    /^(.+?)(?:\s\[(\w+)\])?$/
   );
   if (match) {
     const name = match[1].split(/\s{2,}/).join(" ");
