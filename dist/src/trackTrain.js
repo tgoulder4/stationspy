@@ -136,15 +136,15 @@ function findAction(locationList) {
     const lastNoReport = locationList.find(".noreport").last();
     const badge = locationList.find(".platint");
     if (badge.length != 0) {
-        console.log("BADGE FOUND");
+        // console.log("BADGE FOUND");
         return badge;
     }
     if (lastActualValue.length != 0) {
-        console.log(`LASTACTUALVALUE: ${lastActualValue} FOUND`);
+        // console.log(`LASTACTUALVALUE: ${lastActualValue} FOUND`);
         return lastActualValue;
     }
     if (lastNoReport.length != 0) {
-        console.log("LASTNOREPORT FOUND");
+        // console.log("LASTNOREPORT FOUND");
         return lastNoReport;
     }
     return null;
@@ -154,17 +154,17 @@ function getCallingPoints($, lastActioned, destination) {
     if (lastActioned) {
         const callingPoints = lastActioned.nextAll();
         if (callingPoints.length == 0) {
-            console.log("NO CALLING POINTS FROM DOM");
+            // console.log("NO CALLING POINTS FROM DOM");
             return null;
         }
         let callPoints = [];
         callingPoints.each((i, el) => {
             callPoints.push((0, getInfo_1.getInfo)($(el)).body);
         });
-        console.log("RETURNING CALLPOINTS");
+        // console.log("RETURNING CALLPOINTS");
         return callPoints;
     }
-    console.log("NO LASTACTIONED");
+    // console.log("NO LASTACTIONED");
     return null;
 }
 exports.getCallingPoints = getCallingPoints;
@@ -190,9 +190,9 @@ const variables = function ($) {
         origin = null;
     }
     const lastActioned = getRecordObj(findAction(locationList));
-    console.log(`LASTACTIONED: ${lastActioned}`);
+    // console.log(`LASTACTIONED: ${lastActioned}`);
     let destination = getRecordObj($(".realtime .arr").last()) || null;
-    console.log(`DESTINATION: ${destination}`);
+    // console.log(`DESTINATION: ${destination}`);
     const callingPoints = getCallingPoints($, lastActioned, destination);
     return {
         firstDepAct: firstDepAct,
