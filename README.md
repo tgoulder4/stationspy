@@ -1,6 +1,6 @@
-# trainspy
+# trainspy 🔍
 
-Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this custom made Realtimetrains scraper.
+Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this free custom made RealTimeTrains scraper.
 
 ## Install trainspy
 
@@ -8,7 +8,7 @@ Get departures at any UK train station & recieve instant real-time updates on tr
 npm i trainspy
 ```
 
-# Find trains by station
+# Find departures
 
 Departures can be retrieved by a station's name or code:
 
@@ -34,8 +34,7 @@ which returns in the following format:
 trackTrain(serviceID, date?, timeTillRefresh?) //date in form YYYY-MM-DD, defaults to today
 ```
 
-You first need the `serviceID`.
-Can be retrived by `findTrains(station)` as shown above.
+You first need the `serviceID`. Retrieved by `findTrains(station)` as shown above.
 
 ## Track a service
 
@@ -43,10 +42,10 @@ ServiceID `P70052` departing on 18/08/2023:
 
 ```js
 trackTrain("P70052", "2023-08-18").then((emitter) => {
-  emitter.on("journey", (data) => {
-    //your code for journey updates, in terms of data
+  emitter.on("journey", (journeyUpdate) => {
+    //your code for journey updates, in terms of 'journeyUpdate'
   });
-  emitter.on("information", (data) => console.log(data));
+  emitter.on("information", (infoUpdate) => console.log(infoUpdate));
 });
 ```
 
@@ -54,7 +53,15 @@ trackTrain("P70052", "2023-08-18").then((emitter) => {
 
 This emits live updates on the train until the journey is complete:
 
-Journey update:
+### Journey updates:
+
+A journey update consists of the following properties:
+
+| Property      | Type                             |
+| ------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Status        | string                           |
+| Station       | { `name`: string, `code`: string | null, `stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
+| callingPoints | Array<Station>                   |
 
 ```js
 {
@@ -82,14 +89,6 @@ Journey update:
 }
 ```
 
-Information update:
-
-```js
-  {
-    information: 'Error', details: 'Check service ID.'
-  }
-```
-
 | Status      | Explanation                                         |
 | ----------- | --------------------------------------------------- |
 | Passed      | Train just passed this non-stopping station         |
@@ -97,6 +96,14 @@ Information update:
 | Arriving    | Train is now arriving at this stopping station      |
 | At platform | Train is now at a platform of this stopping station |
 | Departed    | Train just departed this stopping station           |
+
+### Information updates:
+
+```js
+  {
+    information: 'Error', details: 'Check service ID.'
+  }
+```
 
 ## More examples
 
@@ -112,7 +119,7 @@ const serviceID = services.forEach((service) => {
   }
 });
 trackTrain(serviceID).then((emitter) => {
-  emitter.on("journey", () => {
+  emitter.on("journey", (journeyUpdate) => {
     //do stuff!
   });
 });
@@ -130,14 +137,14 @@ class trainInformationComponent extends Component {
   };
 
   trackTrain("P56592").then(emitter=>{
-    emitter.on("journey",(update)=>{
+    emitter.on("journey",(journeyUpdate)=>{
       handleInfoChange(update);
     })
   });
 
   handleInfoChange = (newData) => {
-    const newStatus = data.status;
-    const newStation = data.station.name;
+    const newStatus = newData.status;
+    const newStation = newData.station.name;
     this.setState({
       Status: newStatus,
       Station: newStation
@@ -149,7 +156,7 @@ class trainInformationComponent extends Component {
       <>
       <title>Tracking service P56592</title>
       <label>Status: {state.Status}</label>
-      <label>Station: {state.Station.name}</label>
+      <label>Station: {state.Station}</label>
       </>
     );
   }

@@ -27,13 +27,13 @@
   "name": "trainspy",
   "description": "Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this custom made Realtimetrains scraper.",
   "version": "1.0.0",
-  "main": "dist\\index.js",
+  "main": "dist\\src\\trackTrain.js",
   "directories": {
     "test": "tests"
   },
   "repository": {
     "type": "git",
-    "url": "github.com/tgoulder4/trainspy"
+    "url": "https://github.com/tgoulder4/trainspy"
   },
   "keywords": [
     "Train",
