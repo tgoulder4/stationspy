@@ -28,13 +28,13 @@ export type state = {
     action: string;
   };
 };
-export type error = {
+export type information = {
   body: {
-    error: string;
-    details: string;
+    information: string;
+    details: string | object;
   };
   hidden: {
-    update_type: "error";
+    update_type: "information";
     action: "end";
   };
 };

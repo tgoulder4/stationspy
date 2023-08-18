@@ -14,7 +14,8 @@ const getCurrentDayTime = require("./getDayTime");
  * Returns an emitter with live train updates
  * @param {string} stationName Name of the station or station code. E.g. 'WLF' or 'Whittlesford Parkway'
  */
-module.exports = function findTrains(stationName, dateOfDeparture = getCurrentDayTime("YYYY-MM-DD")) {
+module.exports = function findTrains(stationName, dateOfDeparture = "2023-08-16" //getCurrentDayTime("YYYY-MM-DD")
+) {
     return __awaiter(this, void 0, void 0, function* () {
         //if stationName is 3 letters, destructure from map
         if ((yield fetch(`https://www.realtimetrains.co.uk/search/handler?location=${stationName}`).then((res) => res.text().then((data) => {

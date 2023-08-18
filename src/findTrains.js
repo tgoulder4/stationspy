@@ -8,7 +8,7 @@ const getCurrentDayTime = require("./getDayTime");
  */
 module.exports = async function findTrains(
   stationName,
-  dateOfDeparture = getCurrentDayTime("YYYY-MM-DD")
+  dateOfDeparture = "2023-08-16" //getCurrentDayTime("YYYY-MM-DD")
 ) {
   //if stationName is 3 letters, destructure from map
   if (

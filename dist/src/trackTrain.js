@@ -15,7 +15,6 @@ const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
 const getInfo_1 = require("./getInfo");
-const console_1 = require("console");
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
@@ -55,23 +54,44 @@ function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillR
     });
 }
 exports.trackTrain = trackTrain;
-class TrackTrain {
-    constructor() {
-        this.date = getCurrentDayTime("YYYY-MM-DD");
-    }
-}
-function errorObject(errorString, errorDetails) {
+function informationObject(informationString, informationDetails) {
     return {
         body: {
-            error: errorString,
-            details: errorDetails,
+            information: informationString,
+            details: informationDetails,
         },
         hidden: {
-            update_type: "error",
+            update_type: "information",
             action: "end",
         },
     };
 }
+//2-now-tracking
+// trainUpdateEmitter.emit(
+//   "information",
+//   informationObject("Now tracking", {
+//     serviceUID: serviceID,
+//     date: date,
+//     operator: $(".toc div").text() ? $(".toc div").text() : null,
+//     class:
+//       $(".callout.infopanel")
+//         .text()
+//         .match(/Class (\d+)/)?.[1] ||
+//       $(".callout.infopanel")
+//         .text()
+//         .match(/Operated with (\d+)/)?.[1] ||
+//       null,
+//   })
+// );
+// if ($(".callout.primary").length != 0 || $(".callout.alert").length != 0) {
+//   trainUpdateEmitter.emit(
+//     "information",
+//     informationObject(
+//       "Notice",
+//       $(".callout.primary").text() || $(".callout.alert").text()
+//     )
+//   );
+// }
 //UNIT TESTS
 function getHTML(serviceID, date) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -110,54 +130,41 @@ function getRecordObj(someLocationChild) {
     return null;
 }
 exports.getRecordObj = getRecordObj;
+//-here-
 function findAction(locationList) {
-    //returns null when
-    //there could be a status
+    const lastActualValue = locationList.find(".act").last();
+    const lastNoReport = locationList.find(".noreport").last();
     const badge = locationList.find(".platint");
-    //if there is a badge
     if (badge.length != 0) {
+        // console.log("BADGE FOUND");
         return badge;
     }
-    const lastArrAct = locationList.find(".arr.act").last();
-    const lastArrActDepActSibling = lastArrAct.siblings(".dep.act");
-    let actualMovement;
-    //if there is an arrival
-    if (lastArrAct.length) {
-        //if there is a departure sibling
-        if (lastArrActDepActSibling.length) {
-            //the movement is this departure sibling
-            actualMovement = lastArrActDepActSibling;
-        }
-        else {
-            //the movement is this arrival
-            actualMovement = lastArrAct;
-        }
+    if (lastActualValue.length != 0) {
+        // console.log(`LASTACTUALVALUE: ${lastActualValue} FOUND`);
+        return lastActualValue;
     }
-    else {
-        actualMovement = locationList.find(".dep.act").last();
+    if (lastNoReport.length != 0) {
+        // console.log("LASTNOREPORT FOUND");
+        return lastNoReport;
     }
-    if (actualMovement.length != 0) {
-        return actualMovement;
-    }
-    return null; //no movement
+    return null;
 }
 exports.findAction = findAction;
 function getCallingPoints($, lastActioned, destination) {
     if (lastActioned) {
-        //const callingPoints = select every element with the class '.location.call.public' from lastActioned until and including the last element with the class '.location.call.public'
-        const callingPoints = lastActioned
-            .nextUntil(destination)
-            .filter(".location.call.public");
+        const callingPoints = lastActioned.nextAll();
         if (callingPoints.length == 0) {
+            // console.log("NO CALLING POINTS FROM DOM");
             return null;
         }
         let callPoints = [];
         callingPoints.each((i, el) => {
             callPoints.push((0, getInfo_1.getInfo)($(el)).body);
         });
-        callPoints.push((0, getInfo_1.getInfo)(destination).body);
+        // console.log("RETURNING CALLPOINTS");
         return callPoints;
     }
+    // console.log("NO LASTACTIONED");
     return null;
 }
 exports.getCallingPoints = getCallingPoints;
@@ -170,31 +177,25 @@ function locationListExists($) {
 exports.locationListExists = locationListExists;
 const variables = function ($) {
     const firstDepAct = $(".dep.act").first();
-    const records = $(".location.call.public");
     const firstDepExp = $(".dep.exp").first();
     const locationList = $(".locationlist");
     const lastArrAct = $(".arr.act").last();
-    const lastDepExp = $(".dep.act").last();
+    const lastDepExp = $(".dep.exp").last();
     const lastArrExp = $(".arr.exp").last();
     let origin = null;
-    if (firstDepAct.length != 0 && firstDepExp.length != 0) {
+    if (firstDepAct.length != 0 || firstDepExp.length != 0) {
         origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
     }
     else {
         origin = null;
     }
     const lastActioned = getRecordObj(findAction(locationList));
-    let destination;
-    if (lastArrAct.length != 0 || lastArrExp.length != 0) {
-        destination = getRecordObj(lastArrExp.length ? lastArrExp : lastArrAct);
-    }
-    else {
-        destination = null;
-    }
+    // console.log(`LASTACTIONED: ${lastActioned}`);
+    let destination = getRecordObj($(".realtime .arr").last()) || null;
+    // console.log(`DESTINATION: ${destination}`);
     const callingPoints = getCallingPoints($, lastActioned, destination);
     return {
         firstDepAct: firstDepAct,
-        records: records,
         firstDepExp: firstDepExp,
         lastDepExp: lastDepExp,
         locationList: locationList,
@@ -212,7 +213,7 @@ exports.variables = variables;
 function getCurrentState($) {
     //if no locationlist
     if (!locationListExists($)) {
-        return errorObject("Error", "locationlist element not found. Check service ID.");
+        return informationObject("Error", "locationlist element not found. Check service ID.");
     }
     const { origin, lastActioned, destination, callingPoints } = (0, exports.variables)($);
     let dest;
@@ -225,7 +226,7 @@ function getCurrentState($) {
     }
     //if no origin
     if (!origin) {
-        return errorObject("No route. (Service cancelled?)", $(".callout p").text());
+        return informationObject("Null origin. (Service cancelled?)", $(".callout p").text());
     }
     //if no lastActioned
     if (!lastActioned) {
@@ -234,7 +235,6 @@ function getCurrentState($) {
     //if there's a badge
     if (badgeExists(lastActioned)) {
         const lastA = (0, getInfo_1.getInfo)(lastActioned);
-        (0, console_1.log)(`lastA: ${lastA}`);
         return stateObject(lastA.hidden.badgeText, lastA.body, "continue", callingPoints);
     }
     //if a departure element exists
@@ -272,5 +272,5 @@ function stateObject(_status, _station, _action, _callingPoints) {
 //update to train state
 function emitUpdate(emitter, stateUpdate) {
     //if it's a journey update
-    emitter.emit(`${stateUpdate.hidden.update_type}Update`, stateUpdate.body);
+    emitter.emit(`${stateUpdate.hidden.update_type}`, stateUpdate.body);
 }
