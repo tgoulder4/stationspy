@@ -23,5 +23,27 @@
     "nodemon": "^3.0.1",
     "release-it": "^16.1.5",
     "write": "^2.0.0"
-  }
+  },
+  "name": "trainspy",
+  "description": "Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this custom made Realtimetrains scraper.",
+  "version": "1.0.0",
+  "main": "dist\\index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/tgoulder4/trainspy"
+  },
+  "keywords": [
+    "Train",
+    "Train-Tracker",
+    "Tracker",
+    "Scraper",
+    "Realtime",
+    "Trains",
+    "RealTimeTrains"
+  ],
+  "author": "Tye (tgoulder4)",
+  "license": "ISC"
 }
