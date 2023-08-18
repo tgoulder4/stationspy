@@ -136,7 +136,7 @@ class trainInformationComponent extends Component {
       <>
       <title>Tracking service P56592</title>
       <label>Status: {state.Status}</label>
-      <label>Station: {state.station.name}</label>
+      <label>Station: {state.Station.name}</label>
       </>
     );
   }
