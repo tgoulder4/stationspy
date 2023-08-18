@@ -16,7 +16,7 @@ function parseStationNameAndCode(stationString) {
     if (!stationString) {
         throw new Error("stationString was null");
     }
-    const match = stationString.match(/^(.+?)(?:\s(\[\w+\]))?$/);
+    const match = stationString.match(/^(.+?)(?:\s\[(\w+)\])?$/);
     if (match) {
         const name = match[1].split(/\s{2,}/).join(" ");
         return {

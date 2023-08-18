@@ -21,8 +21,7 @@ const getInfo_1 = require("./getInfo");
  * @param {string} date The date of the service in YYYY-MM-DD format
  * @param {number} timeTillRefresh The time in ms between each refresh. Minimum 5000ms.
  */
-function trackTrain(serviceID, date = "2023-08-16", //getCurrentDayTime("YYYY-MM-DD"),
-timeTillRefresh = 5000) {
+function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillRefresh = 5000) {
     return __awaiter(this, void 0, void 0, function* () {
         if (timeTillRefresh < 5000) {
             timeTillRefresh = 5000;
@@ -55,18 +54,44 @@ timeTillRefresh = 5000) {
     });
 }
 exports.trackTrain = trackTrain;
-function errorObject(errorString, errorDetails) {
+function informationObject(informationString, informationDetails) {
     return {
         body: {
-            error: errorString,
-            details: errorDetails,
+            information: informationString,
+            details: informationDetails,
         },
         hidden: {
-            update_type: "error",
+            update_type: "information",
             action: "end",
         },
     };
 }
+//2-now-tracking
+// trainUpdateEmitter.emit(
+//   "information",
+//   informationObject("Now tracking", {
+//     serviceUID: serviceID,
+//     date: date,
+//     operator: $(".toc div").text() ? $(".toc div").text() : null,
+//     class:
+//       $(".callout.infopanel")
+//         .text()
+//         .match(/Class (\d+)/)?.[1] ||
+//       $(".callout.infopanel")
+//         .text()
+//         .match(/Operated with (\d+)/)?.[1] ||
+//       null,
+//   })
+// );
+// if ($(".callout.primary").length != 0 || $(".callout.alert").length != 0) {
+//   trainUpdateEmitter.emit(
+//     "information",
+//     informationObject(
+//       "Notice",
+//       $(".callout.primary").text() || $(".callout.alert").text()
+//     )
+//   );
+// }
 //UNIT TESTS
 function getHTML(serviceID, date) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -107,17 +132,19 @@ function getRecordObj(someLocationChild) {
 exports.getRecordObj = getRecordObj;
 //-here-
 function findAction(locationList) {
-    let action;
     const lastActualValue = locationList.find(".act").last();
     const lastNoReport = locationList.find(".noreport").last();
     const badge = locationList.find(".platint");
     if (badge.length != 0) {
+        console.log("BADGE FOUND");
         return badge;
     }
     if (lastActualValue.length != 0) {
+        console.log(`LASTACTUALVALUE: ${lastActualValue} FOUND`);
         return lastActualValue;
     }
     if (lastNoReport.length != 0) {
+        console.log("LASTNOREPORT FOUND");
         return lastNoReport;
     }
     return null;
@@ -125,20 +152,19 @@ function findAction(locationList) {
 exports.findAction = findAction;
 function getCallingPoints($, lastActioned, destination) {
     if (lastActioned) {
-        //const callingPoints = select every element with the class '.location.call.public' from lastActioned until and including the last element with the class '.location.call.public'
-        const callingPoints = lastActioned
-            .nextUntil(destination)
-            .filter(".location.call.public");
+        const callingPoints = lastActioned.nextAll();
         if (callingPoints.length == 0) {
+            console.log("NO CALLING POINTS FROM DOM");
             return null;
         }
         let callPoints = [];
         callingPoints.each((i, el) => {
             callPoints.push((0, getInfo_1.getInfo)($(el)).body);
         });
-        callPoints.push((0, getInfo_1.getInfo)(destination).body);
+        console.log("RETURNING CALLPOINTS");
         return callPoints;
     }
+    console.log("NO LASTACTIONED");
     return null;
 }
 exports.getCallingPoints = getCallingPoints;
@@ -164,13 +190,9 @@ const variables = function ($) {
         origin = null;
     }
     const lastActioned = getRecordObj(findAction(locationList));
-    let destination;
-    if (lastArrAct.length != 0 || lastArrExp.length != 0) {
-        destination = getRecordObj(lastArrExp.length ? lastArrExp : lastArrAct);
-    }
-    else {
-        destination = null;
-    }
+    console.log(`LASTACTIONED: ${lastActioned}`);
+    let destination = getRecordObj($(".realtime .arr").last()) || null;
+    console.log(`DESTINATION: ${destination}`);
     const callingPoints = getCallingPoints($, lastActioned, destination);
     return {
         firstDepAct: firstDepAct,
@@ -191,7 +213,7 @@ exports.variables = variables;
 function getCurrentState($) {
     //if no locationlist
     if (!locationListExists($)) {
-        return errorObject("Error", "locationlist element not found. Check service ID.");
+        return informationObject("Error", "locationlist element not found. Check service ID.");
     }
     const { origin, lastActioned, destination, callingPoints } = (0, exports.variables)($);
     let dest;
@@ -204,7 +226,7 @@ function getCurrentState($) {
     }
     //if no origin
     if (!origin) {
-        return errorObject("Null origin. (Service cancelled?)", $(".callout p").text());
+        return informationObject("Null origin. (Service cancelled?)", $(".callout p").text());
     }
     //if no lastActioned
     if (!lastActioned) {
@@ -250,5 +272,5 @@ function stateObject(_status, _station, _action, _callingPoints) {
 //update to train state
 function emitUpdate(emitter, stateUpdate) {
     //if it's a journey update
-    emitter.emit(`${stateUpdate.hidden.update_type}Update`, stateUpdate.body);
+    emitter.emit(`${stateUpdate.hidden.update_type}`, stateUpdate.body);
 }

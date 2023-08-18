@@ -10,16 +10,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const trackTrain_js_1 = require("./trackTrain.js");
-const cheerio_1 = require("cheerio");
-const testHTMLData_1 = require("../../tests/testHTMLData");
+const cheerio = require("cheerio");
+const { serviceCancelled, departedStoppingStation, passUnknownDelay, passedPassStation, reachedDestination, arriving, journeyNotFoundTest, notYetDeparted, approachingAPass, partiallyCancelled, } = require("../../tests/testHTMLData");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    const html = yield (0, testHTMLData_1.departedStoppingStation)();
-    const $ = cheerio_1.default.load(html);
-    const variablesObj = (0, trackTrain_js_1.variables)($);
-    for (const [key, value] of Object.entries(variablesObj)) {
-        if (key != "locationList") {
-            console.log(`${key}: ${$(value).html()}`);
-        }
-    }
+    // const html = await departedStoppingStation();
+    // const $ = cheerio.load(html);
+    // const variablesObj = variables($);
+    // for (const [key, value] of Object.entries(variablesObj)) {
+    //   if (key != "locationList") {
+    //     console.log(`${key}: ${$(value)}`);
+    //   }
+    // }
+    (0, trackTrain_js_1.trackTrain)("G26117").then((emitter) => {
+        emitter.on("journey", (data) => {
+            console.log(data);
+        });
+        emitter.on("information", (data) => {
+            console.log(data);
+        });
+    });
 });
 main();
