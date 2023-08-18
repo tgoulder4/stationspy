@@ -213,7 +213,7 @@ exports.variables = variables;
 function getCurrentState($) {
     //if no locationlist
     if (!locationListExists($)) {
-        return informationObject("Error", "locationlist element not found. Check service ID.");
+        return informationObject("Error", "Check service ID.");
     }
     const { origin, lastActioned, destination, callingPoints } = (0, exports.variables)($);
     let dest;

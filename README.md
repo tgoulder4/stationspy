@@ -31,7 +31,7 @@ which returns in the following format:
 # Tracking a train
 
 ```js
-trackTrain(serviceID, date, timeTillRefresh?) //date in form YYYY-MM-DD, defaults to today
+trackTrain(serviceID, date?, timeTillRefresh?) //date in form YYYY-MM-DD, defaults to today
 ```
 
 You first need the `serviceID`.
@@ -43,15 +43,18 @@ ServiceID `P70052` departing on 18/08/2023:
 
 ```js
 trackTrain("P70052", "2023-08-18").then((emitter) => {
-  emitter.on("journeyUpdate", (data) => {
+  emitter.on("journey", (data) => {
     //your code for journey updates, in terms of data
   });
-  emitter.on("errorUpdate", (data) => console.log(data));
+  emitter.on("information", (data) => console.log(data));
 });
 ```
 
 `trackTrain` returns a promise - `emitter`. Subscribe as shown above.
-This emits live updates (as Objects) on the train until the journey is complete.
+
+This emits live updates on the train until the journey is complete:
+
+Journey update:
 
 ```js
 {
@@ -79,6 +82,14 @@ This emits live updates (as Objects) on the train until the journey is complete.
 }
 ```
 
+Information update:
+
+```js
+  {
+    information: 'Error', details: 'Check service ID.'
+  }
+```
+
 | Status      | Explanation                                         |
 | ----------- | --------------------------------------------------- |
 | Passed      | Train just passed this non-stopping station         |
@@ -95,13 +106,15 @@ Track the next service from London to Manchester, today:
 import { trackTrain, findTrains } from "trainspy";
 
 const services = await findTrains("EUS");
-services.forEach((service) => {
+const serviceID = services.forEach((service) => {
   if (service.destination == "Manchester Piccadilly") {
-    trackTrain(service.serviceID).then((emitter) => {
-      emitter.on("journeyUpdate", (update) => console.log(update));
-      emitter.on("errorUpdate", (data) => console.log(data));
-    });
+    return service.serviceID;
   }
+});
+trackTrain(serviceID).then((emitter) => {
+  emitter.on("journey", () => {
+    //do stuff!
+  });
 });
 ```
 

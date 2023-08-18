@@ -21,7 +21,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     //     console.log(`${key}: ${$(value)}`);
     //   }
     // }
-    (0, trackTrain_js_1.trackTrain)("G26117").then((emitter) => {
+    (0, trackTrain_js_1.trackTrain)("vdasaga").then((emitter) => {
         emitter.on("journey", (data) => {
             console.log(data);
         });

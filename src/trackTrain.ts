@@ -219,10 +219,7 @@ export const variables = function ($: cheerio.Root) {
 export function getCurrentState($: cheerio.Root): state | information {
   //if no locationlist
   if (!locationListExists($)) {
-    return informationObject(
-      "Error",
-      "locationlist element not found. Check service ID."
-    );
+    return informationObject("Error", "Check service ID.");
   }
   const { origin, lastActioned, destination, callingPoints } = variables($);
   let dest: recordInfo;

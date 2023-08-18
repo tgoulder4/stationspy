@@ -21,7 +21,7 @@ const main = async () => {
   //     console.log(`${key}: ${$(value)}`);
   //   }
   // }
-  trackTrain("G26117").then((emitter) => {
+  trackTrain("vdasaga").then((emitter) => {
     emitter.on("journey", (data) => {
       console.log(data);
     });
