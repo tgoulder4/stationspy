@@ -135,15 +135,15 @@ export function findAction(
   const badge = locationList.find(".platint");
 
   if (badge.length != 0) {
-    console.log("BADGE FOUND");
+    // console.log("BADGE FOUND");
     return badge;
   }
   if (lastActualValue.length != 0) {
-    console.log(`LASTACTUALVALUE: ${lastActualValue} FOUND`);
+    // console.log(`LASTACTUALVALUE: ${lastActualValue} FOUND`);
     return lastActualValue;
   }
   if (lastNoReport.length != 0) {
-    console.log("LASTNOREPORT FOUND");
+    // console.log("LASTNOREPORT FOUND");
     return lastNoReport;
   }
   return null;
@@ -156,17 +156,17 @@ export function getCallingPoints(
   if (lastActioned) {
     const callingPoints: cheerio.Cheerio = lastActioned.nextAll();
     if (callingPoints.length == 0) {
-      console.log("NO CALLING POINTS FROM DOM");
+      // console.log("NO CALLING POINTS FROM DOM");
       return null;
     }
     let callPoints: Array<recordInfo["body"]> = [];
     callingPoints.each((i, el) => {
       callPoints.push(getInfo($(el)).body);
     });
-    console.log("RETURNING CALLPOINTS");
+    // console.log("RETURNING CALLPOINTS");
     return callPoints;
   }
-  console.log("NO LASTACTIONED");
+  // console.log("NO LASTACTIONED");
   return null;
 }
 export function locationListExists($: cheerio.Root) {
@@ -191,10 +191,10 @@ export const variables = function ($: cheerio.Root) {
   const lastActioned: cheerio.Cheerio | null = getRecordObj(
     findAction(locationList)
   );
-  console.log(`LASTACTIONED: ${lastActioned}`);
+  // console.log(`LASTACTIONED: ${lastActioned}`);
   let destination: cheerio.Cheerio | null =
     getRecordObj($(".realtime .arr").last()) || null;
-  console.log(`DESTINATION: ${destination}`);
+  // console.log(`DESTINATION: ${destination}`);
   const callingPoints: Array<recordInfo["body"]> | null = getCallingPoints(
     $,
     lastActioned,
