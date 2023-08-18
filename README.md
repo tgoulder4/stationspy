@@ -58,10 +58,10 @@ This emits live updates on the train until the journey is complete:
 A journey update consists of the following properties:
 
 | Property      | Type                             |
-| ------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| ------------- | -------------------------------- |
 | Status        | string                           |
-| Station       | { `name`: string, `code`: string | null, `stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
-| callingPoints | Array<Station>                   |
+| Station       | { `name`: string, `code`: string \| null, `stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
+| callingPoints | Array\<Station>                   |
 
 ```js
 {
