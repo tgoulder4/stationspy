@@ -4,7 +4,6 @@ const EventEmitter = require("events");
 const equal = require("deep-equal");
 import { getInfo } from "./getInfo";
 import { error, state, recordInfo } from "./types/types";
-import { log } from "console";
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
@@ -13,7 +12,7 @@ import { log } from "console";
  */
 export async function trackTrain(
   serviceID: string,
-  date = getCurrentDayTime("YYYY-MM-DD"),
+  date = "2023-08-16", //getCurrentDayTime("YYYY-MM-DD"),
   timeTillRefresh = 5000
 ) {
   if (timeTillRefresh < 5000) {
@@ -45,9 +44,6 @@ export async function trackTrain(
   }, timeTillRefresh);
   //return the emitter for subscription
   return trainUpdateEmitter;
-}
-class TrackTrain {
-  date = getCurrentDayTime("YYYY-MM-DD");
 }
 function errorObject(errorString: string, errorDetails: string): error {
   return {
@@ -102,36 +98,25 @@ export function getRecordObj(
   }
   return null;
 }
+//-here-
 export function findAction(
   locationList: cheerio.Cheerio
 ): cheerio.Cheerio | null {
-  //returns null when
-  //there could be a status
-  const badge: cheerio.Cheerio = locationList.find(".platint");
-  //if there is a badge
+  let action: cheerio.Cheerio | null;
+  const lastActualValue = locationList.find(".act").last();
+  const lastNoReport = locationList.find(".noreport").last();
+  const badge = locationList.find(".platint");
+
   if (badge.length != 0) {
     return badge;
   }
-  const lastArrAct = locationList.find(".arr.act").last();
-  const lastArrActDepActSibling = lastArrAct.siblings(".dep.act");
-  let actualMovement: cheerio.Cheerio;
-  //if there is an arrival
-  if (lastArrAct.length) {
-    //if there is a departure sibling
-    if (lastArrActDepActSibling.length) {
-      //the movement is this departure sibling
-      actualMovement = lastArrActDepActSibling;
-    } else {
-      //the movement is this arrival
-      actualMovement = lastArrAct;
-    }
-  } else {
-    actualMovement = locationList.find(".dep.act").last();
+  if (lastActualValue.length != 0) {
+    return lastActualValue;
   }
-  if (actualMovement.length != 0) {
-    return actualMovement;
+  if (lastNoReport.length != 0) {
+    return lastNoReport;
   }
-  return null; //no movement
+  return null;
 }
 export function getCallingPoints(
   $: cheerio.Root,
@@ -163,14 +148,13 @@ export function locationListExists($: cheerio.Root) {
 }
 export const variables = function ($: cheerio.Root) {
   const firstDepAct = $(".dep.act").first();
-  const records = $(".location.call.public");
   const firstDepExp = $(".dep.exp").first();
   const locationList = $(".locationlist");
   const lastArrAct: cheerio.Cheerio = $(".arr.act").last();
-  const lastDepExp: cheerio.Cheerio = $(".dep.act").last();
+  const lastDepExp: cheerio.Cheerio = $(".dep.exp").last();
   const lastArrExp = $(".arr.exp").last();
   let origin: cheerio.Cheerio | null = null;
-  if (firstDepAct.length != 0 && firstDepExp.length != 0) {
+  if (firstDepAct.length != 0 || firstDepExp.length != 0) {
     origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
   } else {
     origin = null;
@@ -192,7 +176,6 @@ export const variables = function ($: cheerio.Root) {
 
   return {
     firstDepAct: firstDepAct,
-    records: records,
     firstDepExp: firstDepExp,
     lastDepExp: lastDepExp,
     locationList: locationList,
@@ -231,7 +214,7 @@ export function getCurrentState($: cheerio.Root): state | error {
   //if no origin
   if (!origin) {
     return errorObject(
-      "No route. (Service cancelled?)",
+      "Null origin. (Service cancelled?)",
       $(".callout p").text()
     );
   }
@@ -247,7 +230,6 @@ export function getCurrentState($: cheerio.Root): state | error {
   //if there's a badge
   if (badgeExists(lastActioned)) {
     const lastA = getInfo(lastActioned);
-    log(`lastA: ${lastA}`);
     return stateObject(
       lastA.hidden.badgeText,
       lastA.body,

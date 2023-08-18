@@ -15,14 +15,14 @@ const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
 const getInfo_1 = require("./getInfo");
-const console_1 = require("console");
 /**
  * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
  * @param {string} serviceID
  * @param {string} date The date of the service in YYYY-MM-DD format
  * @param {number} timeTillRefresh The time in ms between each refresh. Minimum 5000ms.
  */
-function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillRefresh = 5000) {
+function trackTrain(serviceID, date = "2023-08-16", //getCurrentDayTime("YYYY-MM-DD"),
+timeTillRefresh = 5000) {
     return __awaiter(this, void 0, void 0, function* () {
         if (timeTillRefresh < 5000) {
             timeTillRefresh = 5000;
@@ -55,11 +55,6 @@ function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillR
     });
 }
 exports.trackTrain = trackTrain;
-class TrackTrain {
-    constructor() {
-        this.date = getCurrentDayTime("YYYY-MM-DD");
-    }
-}
 function errorObject(errorString, errorDetails) {
     return {
         body: {
@@ -110,36 +105,22 @@ function getRecordObj(someLocationChild) {
     return null;
 }
 exports.getRecordObj = getRecordObj;
+//-here-
 function findAction(locationList) {
-    //returns null when
-    //there could be a status
+    let action;
+    const lastActualValue = locationList.find(".act").last();
+    const lastNoReport = locationList.find(".noreport").last();
     const badge = locationList.find(".platint");
-    //if there is a badge
     if (badge.length != 0) {
         return badge;
     }
-    const lastArrAct = locationList.find(".arr.act").last();
-    const lastArrActDepActSibling = lastArrAct.siblings(".dep.act");
-    let actualMovement;
-    //if there is an arrival
-    if (lastArrAct.length) {
-        //if there is a departure sibling
-        if (lastArrActDepActSibling.length) {
-            //the movement is this departure sibling
-            actualMovement = lastArrActDepActSibling;
-        }
-        else {
-            //the movement is this arrival
-            actualMovement = lastArrAct;
-        }
+    if (lastActualValue.length != 0) {
+        return lastActualValue;
     }
-    else {
-        actualMovement = locationList.find(".dep.act").last();
+    if (lastNoReport.length != 0) {
+        return lastNoReport;
     }
-    if (actualMovement.length != 0) {
-        return actualMovement;
-    }
-    return null; //no movement
+    return null;
 }
 exports.findAction = findAction;
 function getCallingPoints($, lastActioned, destination) {
@@ -170,14 +151,13 @@ function locationListExists($) {
 exports.locationListExists = locationListExists;
 const variables = function ($) {
     const firstDepAct = $(".dep.act").first();
-    const records = $(".location.call.public");
     const firstDepExp = $(".dep.exp").first();
     const locationList = $(".locationlist");
     const lastArrAct = $(".arr.act").last();
-    const lastDepExp = $(".dep.act").last();
+    const lastDepExp = $(".dep.exp").last();
     const lastArrExp = $(".arr.exp").last();
     let origin = null;
-    if (firstDepAct.length != 0 && firstDepExp.length != 0) {
+    if (firstDepAct.length != 0 || firstDepExp.length != 0) {
         origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
     }
     else {
@@ -194,7 +174,6 @@ const variables = function ($) {
     const callingPoints = getCallingPoints($, lastActioned, destination);
     return {
         firstDepAct: firstDepAct,
-        records: records,
         firstDepExp: firstDepExp,
         lastDepExp: lastDepExp,
         locationList: locationList,
@@ -225,7 +204,7 @@ function getCurrentState($) {
     }
     //if no origin
     if (!origin) {
-        return errorObject("No route. (Service cancelled?)", $(".callout p").text());
+        return errorObject("Null origin. (Service cancelled?)", $(".callout p").text());
     }
     //if no lastActioned
     if (!lastActioned) {
@@ -234,7 +213,6 @@ function getCurrentState($) {
     //if there's a badge
     if (badgeExists(lastActioned)) {
         const lastA = (0, getInfo_1.getInfo)(lastActioned);
-        (0, console_1.log)(`lastA: ${lastA}`);
         return stateObject(lastA.hidden.badgeText, lastA.body, "continue", callingPoints);
     }
     //if a departure element exists
