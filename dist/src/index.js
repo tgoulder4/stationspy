@@ -13,7 +13,7 @@ const trackTrain_js_1 = require("./trackTrain.js");
 const cheerio = require("cheerio");
 const { serviceCancelled, departedStoppingStation, passUnknownDelay, passedPassStation, reachedDestination, arriving, journeyNotFoundTest, notYetDeparted, approachingAPass, partiallyCancelled, } = require("../../tests/testHTMLData");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    (0, trackTrain_js_1.trackTrain)("vdasaga").then((emitter) => {
+    (0, trackTrain_js_1.trackTrain)("P71033").then((emitter) => {
         emitter.on("journey", (data) => {
             console.log(data);
         });

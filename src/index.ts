@@ -13,7 +13,7 @@ const {
   partiallyCancelled,
 } = require("../../tests/testHTMLData");
 const main = async () => {
-  trackTrain("vdasaga").then((emitter) => {
+  trackTrain("P71033").then((emitter) => {
     emitter.on("journey", (data) => {
       console.log(data);
     });
