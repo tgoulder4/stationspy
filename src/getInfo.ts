@@ -49,7 +49,7 @@ export function getInfo(record: cheerio.Cheerio): recordInfo {
       .text()
       .trim()
   );
-  console.log(`code: ${code}`);
+  // console.log(`code: ${code}`);
   const arrExpValue = record.find(".arr.exp");
   const arrActValue = record.find(".arr.act");
   const depExpValue = record.find(".dep.exp");

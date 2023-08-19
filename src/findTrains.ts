@@ -52,7 +52,7 @@ module.exports = async function findTrains(
     latitude: stationLocations[stationCode].latitude,
     longitude: stationLocations[stationCode].longitude,
   };
-  console.log(`Location: ${location}`);
+  // console.log(`Location: ${location}`);
   await fetch(
     `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`
   ).then((res) =>

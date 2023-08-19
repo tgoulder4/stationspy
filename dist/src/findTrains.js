@@ -42,7 +42,7 @@ module.exports = function findTrains(stationCode, dateOfDeparture = getCurrentDa
             latitude: stationLocations[stationCode].latitude,
             longitude: stationLocations[stationCode].longitude,
         };
-        console.log(`Location: ${location}`);
+        // console.log(`Location: ${location}`);
         yield fetch(`https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`).then((res) => res.text().then((data) => {
             const $ = cheerio.load(data);
             $("a.service").each((i, el) => __awaiter(this, void 0, void 0, function* () {
