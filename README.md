@@ -39,8 +39,9 @@ trackTrain(serviceID, date?, timeTillRefresh?) //date in form YYYY-MM-DD, defaul
 You first need the `serviceID`. Retrieved by `findTrains(station)` as shown above.
 
 ## Track a service
+
 `trackTrain` returns a promise - `emitter`.
-This emits live updates on the train until the journey is complete. 
+This emits live updates on the train until the journey is complete.
 E.g. ServiceID `P70052` departing on 18/08/2023:
 
 ```js
@@ -51,17 +52,18 @@ trackTrain("P70052", "2023-08-18").then((emitter) => {
   emitter.on("information", (infoUpdate) => console.log(infoUpdate));
 });
 ```
+
 _Note you must enter an event name of "journey" or "information"._
 
 ### Journey updates:
 
 A journey update consists of the following properties:
 
-| Property      | Type                             |
-| ------------- | -------------------------------- |
-| Status        | string                           |
+| Property      | Type                                                                                                                                                                    |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status        | string                                                                                                                                                                  |
 | Station       | { `name`: string, `code`: string \| null, `stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
-| callingPoints | Array\<Station>                   |
+| callingPoints | Array\<Station>                                                                                                                                                         |
 
 ```js
 {
@@ -162,3 +164,5 @@ class trainInformationComponent extends Component {
   }
 };
 ```
+
+Special thanks to @ellcom for their list of longitude & latitude for each station.

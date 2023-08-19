@@ -2,10 +2,30 @@ type Timing = {
   actual?: string | null;
   scheduled: string | null;
 };
+type Location = {
+  longitude: Number;
+  latitude: Number;
+};
+type Departures = {
+  serviceID: string;
+  destination: string;
+  arrival: Timing;
+  departure: Timing;
+  platform: string;
+  delay: number;
+  stopsHere: boolean;
+};
+export type stationResponse = {
+  name: string;
+  code: string | null;
+  location: Location;
+  services: Array<Departures>;
+};
 export type recordInfo = {
   body: {
     name: string;
     code: string | null;
+    location: Location;
     arrival?: Timing;
     platform?: string;
     delay?: number;
@@ -38,3 +58,59 @@ export type information = {
     action: "end";
   };
 };
+export function createInformationResponse(
+  information: string,
+  details: string | object
+): information {
+  return {
+    body: {
+      information,
+      details,
+    },
+    hidden: {
+      update_type: "information",
+      action: "end",
+    },
+  };
+}
+export function createInformationBodyResponse(
+  information: string,
+  details: string | object
+): information["body"] {
+  return {
+    information,
+    details,
+  };
+}
+export function createDeparture(
+  serviceID: string,
+  destination: string,
+  arrival: Timing,
+  departure: Timing,
+  platform: string,
+  delay: number,
+  stopsHere: boolean
+): Departures {
+  return {
+    serviceID,
+    destination,
+    arrival,
+    departure,
+    platform,
+    delay,
+    stopsHere,
+  };
+}
+export function createStationResponse(
+  name: string,
+  code: string | null,
+  location: Location,
+  services: Array<Departures>
+): stationResponse {
+  return {
+    name,
+    code,
+    location,
+    services,
+  };
+}
