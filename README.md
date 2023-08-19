@@ -39,8 +39,9 @@ trackTrain(serviceID, date?, timeTillRefresh?) //date in form YYYY-MM-DD, defaul
 You first need the `serviceID`. Retrieved by `findTrains(station)` as shown above.
 
 ## Track a service
-
-ServiceID `P70052` departing on 18/08/2023:
+`trackTrain` returns a promise - `emitter`.
+This emits live updates on the train until the journey is complete. 
+E.g. ServiceID `P70052` departing on 18/08/2023:
 
 ```js
 trackTrain("P70052", "2023-08-18").then((emitter) => {
@@ -50,10 +51,7 @@ trackTrain("P70052", "2023-08-18").then((emitter) => {
   emitter.on("information", (infoUpdate) => console.log(infoUpdate));
 });
 ```
-
-`trackTrain` returns a promise - `emitter`. Subscribe as shown above.
-
-This emits live updates on the train until the journey is complete:
+_Note you must enter an event name of "journey" or "information"._
 
 ### Journey updates:
 
