@@ -15,19 +15,42 @@ npm i trainspy
 Departures can be retrieved by a station's name or code:
 
 ```js
-findTrains("WLF") || findTrains("Whittlesford Parkway");
+findTrains("WLF");
 ```
+
+_⚠️NOTE: Some features are unavailable with a station name. Use it's code for the best experience!_
 
 which returns in the following format:
 
 ```js
-[
-  {
-    destination: "Cambridge",
-    departure: { actual: "2259", scheduled: "2259" },
-    serviceID: "L14119",
-  },
-];
+{
+  name: 'Whittlesford Parkway',
+  code: 'WLF',
+  location: { latitude: 52.1035981209, longitude: 0.1656457011 },
+  departures: [
+    {
+      serviceID: 'L13825',
+      destination: 'Norwich',
+      arrival: { actual: '2109', scheduled: '2109' },
+      departure: { actual: '2109¼', scheduled: '2109' },
+      platform: '2',
+      stopsHere: true,
+      state: {
+        status: 'Passed',
+        station: {
+          name: 'Waterbeach',
+          code: 'WBC',
+          location: { latitude: 52.2623177182, longitude: 0.1968191721 },
+          platform: '2',
+          stopsHere: false,
+          delay: 0,
+          arrival: { actual: null, scheduled: null },
+          departure: { actual: '2127½', scheduled: '2128' }
+        }
+      }
+    },
+    ...]
+}
 ```
 
 # Tracking a train
@@ -59,34 +82,57 @@ _Note you must enter an event name of "journey" or "information"._
 
 A journey update consists of the following properties:
 
-| Property      | Type                                                                                                                                                                    |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status        | string                                                                                                                                                                  |
-| Station       | { `name`: string, `code`: string \| null, `stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
-| callingPoints | Array\<Station>                                                                                                                                                         |
+| Property      | Type                                                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status        | string                                                                                                                                                                                |
+| Station       | { `name`: string, `code`: string \| null, `location`: {}`stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
+| callingPoints | Array\<Station>                                                                                                                                                                       |
 
 ```js
 {
-  status: 'At Platform',
+  status: 'At platform',
   station: {
-    name: 'Stratford Parkway',
-    code: 'STY',
-    platform: null,
+    name: 'Smethwick Rolfe Street',
+    code: 'SMR',
+    location: { latitude: 52.4963984863, longitude: -1.9706383988 },
+    platform: '2',
     stopsHere: true,
     delay: 0,
-    arrival: { actual: '1437', scheduled: '1437' },
-    departure: { actual: null, scheduled: '1438' }
+    arrival: { actual: '2146¾', scheduled: '2146½' },
+    departure: { actual: null, scheduled: '2147' }
   },
   callingPoints: [
     {
-      name: 'Stratford-upon-Avon',
-      code: 'SAV',
+      name: 'Galton Jn',
+      code: 'XGJ',
+      location: null,
+      platform: null,
+      stopsHere: false,
+      delay: 0,
+      arrival: { actual: null, scheduled: null },
+      departure: { actual: null, scheduled: '2148' }
+    },
+    {
+      name: 'Smethwick Galton Bridge',
+      code: 'SGB',
+      location: { latitude: 52.5017945032, longitude: -1.9805048854 },
+      platform: null,
+      stopsHere: true,
+      delay: 0,
+      arrival: { actual: null, scheduled: '2149' },
+      departure: { actual: null, scheduled: '2150' }
+    },
+    {
+      name: 'Sandwell & Dudley',
+      code: 'SAD',
+      location: { latitude: 52.508672806, longitude: -2.0115900516 },
       platform: '2',
       stopsHere: true,
       delay: 0,
-      arrival: { actual: null, scheduled: '1445' },
-      departure: { actual: null, scheduled: null }
-    }
+      arrival: { actual: null, scheduled: '2152' },
+      departure: { actual: null, scheduled: '2153' }
+    },
+    ...
   ]
 }
 ```

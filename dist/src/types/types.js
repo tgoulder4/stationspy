@@ -23,14 +23,13 @@ function createInformationBodyResponse(information, details) {
 exports.createInformationBodyResponse = createInformationBodyResponse;
 function createDeparture(UID, destination, arrival, departure, platform, stopsHere, currentTrainState) {
     return {
-        [UID]: {
-            destination: destination,
-            arrival: arrival,
-            departure: departure,
-            platform: platform,
-            stopsHere: stopsHere,
-            state: currentTrainState,
-        },
+        serviceID: UID,
+        destination: destination,
+        arrival: arrival,
+        departure: departure,
+        platform: platform,
+        stopsHere: stopsHere,
+        state: currentTrainState,
     };
 }
 exports.createDeparture = createDeparture;

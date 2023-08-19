@@ -5,9 +5,11 @@ const util = require("util");
 //   findTrains,
 //   trackTrain,
 // };
-(async () => {
-  const trains = await findTrains("WLF");
-  console.log(
-    util.inspect(trains, { showHidden: false, depth: null, colors: true })
-  );
-})();
+
+trackTrain("P71896", "2023-08-19").then((emitter) =>
+  emitter.on("journey", (data) =>
+    console.log(
+      util.inspect(data, { showHidden: false, depth: null, colors: true })
+    )
+  )
+);

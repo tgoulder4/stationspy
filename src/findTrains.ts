@@ -47,10 +47,15 @@ export default async function findTrains(
       "Please enter a valid station code or the date and time entered."
     );
   }
-  const stationName = stationLocations[stationCode].station_name;
+  //if a match of 3 capital letters,
+  let stationName = "";
+  const match = stationName.match(/[A-Z]{3}/);
+  stationName = !match
+    ? stationName
+    : stationLocations[stationCode].station_name;
   const location = {
-    latitude: stationLocations[stationCode].latitude,
-    longitude: stationLocations[stationCode].longitude,
+    latitude: match ? stationLocations[stationCode].latitude : null,
+    longitude: match ? stationLocations[stationCode].longitude : null,
   };
   const services: Array<Departure> = [];
   //rate limiter

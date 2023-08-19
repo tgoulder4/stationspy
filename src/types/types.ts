@@ -7,15 +7,15 @@ export type Location = {
   latitude: Number;
 };
 export type Departure = {
-  [UID: string]: {
-    destination: string;
-    arrival: Timing;
-    departure: Timing;
-    platform: string;
-    stopsHere: boolean;
-    state: state["body"] | null;
-  };
+  serviceID: string;
+  destination: string;
+  arrival: Timing;
+  departure: Timing;
+  platform: string;
+  stopsHere: boolean;
+  state: state["body"] | null;
 };
+
 export type stationResponse = {
   name: string;
   code: string | null;
@@ -93,14 +93,13 @@ export function createDeparture(
   currentTrainState: state["body"] | null
 ): Departure {
   return {
-    [UID]: {
-      destination: destination,
-      arrival: arrival,
-      departure: departure,
-      platform: platform,
-      stopsHere: stopsHere,
-      state: currentTrainState,
-    },
+    serviceID: UID,
+    destination: destination,
+    arrival: arrival,
+    departure: departure,
+    platform: platform,
+    stopsHere: stopsHere,
+    state: currentTrainState,
   };
 }
 export function createStationResponse(
