@@ -13,14 +13,6 @@ const {
   partiallyCancelled,
 } = require("../../tests/testHTMLData");
 const main = async () => {
-  // const html = await departedStoppingStation();
-  // const $ = cheerio.load(html);
-  // const variablesObj = variables($);
-  // for (const [key, value] of Object.entries(variablesObj)) {
-  //   if (key != "locationList") {
-  //     console.log(`${key}: ${$(value)}`);
-  //   }
-  // }
   trackTrain("vdasaga").then((emitter) => {
     emitter.on("journey", (data) => {
       console.log(data);

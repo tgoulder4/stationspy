@@ -9,14 +9,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCurrentState = exports.variables = exports.locationListExists = exports.getCallingPoints = exports.findAction = exports.getRecordObj = exports.badgeExists = exports.destinationReached = exports.originExists = exports.getHTML = exports.trackTrain = void 0;
+exports.getCurrentState = exports.variables = exports.locationListExists = exports.getCallingPoints = exports.findAction = exports.getRecordObj = exports.badgeExists = exports.destinationReached = exports.originExists = exports.getHTML = exports.trackTrain = exports.trackOnce = void 0;
 const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
 const getInfo_1 = require("./getInfo");
+function trackOnce(serviceID, date = getCurrentDayTime("YYYY-MM-DD")) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let html = yield getHTML(serviceID, date);
+        let $ = cheerio.load(html);
+        return (0, getInfo_1.getInfo)(getRecordObj(findAction($(".locationlist")))).body;
+    });
+}
+exports.trackOnce = trackOnce;
 /**
- * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
+ * Returns an emitter promise for live train updates.
  * @param {string} serviceID
  * @param {string} date The date of the service in YYYY-MM-DD format
  * @param {number} timeTillRefresh The time in ms between each refresh. Minimum 5000ms.
@@ -191,7 +199,11 @@ const variables = function ($) {
     }
     const lastActioned = getRecordObj(findAction(locationList));
     // console.log(`LASTACTIONED: ${lastActioned}`);
-    let destination = getRecordObj($(".realtime .arr").last()) || null;
+    let destination = $(".realtime .arr").last().length
+        ? getRecordObj($(".realtime .arr").last())
+        : $(".realtime.arr").slice(1).last().length
+            ? getRecordObj($(".realtime.arr").slice(1).last())
+            : null;
     // console.log(`DESTINATION: ${destination}`);
     const callingPoints = getCallingPoints($, lastActioned, destination);
     return {

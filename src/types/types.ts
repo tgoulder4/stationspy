@@ -13,7 +13,7 @@ type Departures = {
   departure: Timing;
   platform: string;
   stopsHere: boolean;
-  currentLocation: Location;
+  currentLocation: Location | null;
 };
 export type stationResponse = {
   name: string;
@@ -89,7 +89,7 @@ export function createDeparture(
   departure: Timing,
   platform: string,
   stopsHere: boolean,
-  currentLocation: Location
+  currentLocation: Location | null
 ): Departures {
   return {
     serviceID,

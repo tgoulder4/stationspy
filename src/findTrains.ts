@@ -10,7 +10,7 @@ import {
   recordInfo,
 } from "./types/types";
 var stationLocations = require("./map/stationLocations.json");
-import { trackOnce } from "./trackTrain";
+import { getLocationObject } from "./getInfo";
 //method: present stations
 
 /**
@@ -81,11 +81,7 @@ module.exports = async function findTrains(
           ? service.find(".platform.exp").text()
           : null;
         console.log(`Platform: ${platform}`);
-        const res: recordInfo["body"] = await trackOnce(
-          UID[1],
-          dateOfDeparture
-        );
-        const currentTrainLocation = res.location;
+        const currentTrainLocation = getLocationObject(stationCode);
         if (!service.hasClass("pass")) {
           services.push(
             createDeparture(

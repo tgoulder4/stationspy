@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getInfo = exports.parseStationNameAndCode = exports.getDelay = void 0;
+exports.getInfo = exports.getLocationObject = exports.parseStationNameAndCode = exports.getDelay = void 0;
+var stationLocations = require("./map/stationLocations.json");
 //UNIT TESTS
 function getDelay(record) {
     if (record.find(".delay.nil").length != 0) {
@@ -30,6 +31,16 @@ function parseStationNameAndCode(stationString) {
     };
 }
 exports.parseStationNameAndCode = parseStationNameAndCode;
+function getLocationObject(code) {
+    if (stationLocations[code]) {
+        return {
+            latitude: stationLocations[code].latitude,
+            longitude: stationLocations[code].longitude,
+        };
+    }
+    return null;
+}
+exports.getLocationObject = getLocationObject;
 function getInfo(record) {
     const { name, code } = parseStationNameAndCode(record
         .find(".name")
@@ -39,12 +50,14 @@ function getInfo(record) {
         .end() //again go back to selected element
         .text()
         .trim());
+    console.log(`code: ${code}`);
     const arrExpValue = record.find(".arr.exp");
     const arrActValue = record.find(".arr.act");
     const depExpValue = record.find(".dep.exp");
     const depActValue = record.find(".dep.act");
     const arrValueExists = arrExpValue.length != 0 || arrActValue.length != 0;
     const depValueExists = depExpValue.length != 0 || depActValue.length != 0;
+    const location = getLocationObject(code);
     let platform;
     if (record.find(".platform").text().length != 0) {
         platform = record.find(".platform").text();
@@ -57,6 +70,7 @@ function getInfo(record) {
     let commonBodyData = {
         name: name,
         code: code,
+        location: location,
         platform: platform,
         stopsHere: stopsHere,
         delay: delay,
