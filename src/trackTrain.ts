@@ -2,6 +2,7 @@ const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
+import { get } from "jquery";
 import { getInfo } from "./getInfo";
 import { information, state, recordInfo } from "./types/types";
 /**
@@ -192,8 +193,11 @@ export const variables = function ($: cheerio.Root) {
     findAction(locationList)
   );
   // console.log(`LASTACTIONED: ${lastActioned}`);
-  let destination: cheerio.Cheerio | null =
-    getRecordObj($(".realtime .arr").last()) || null;
+  let destination: cheerio.Cheerio | null = $(".realtime .arr").last().length
+    ? getRecordObj($(".realtime .arr").last())
+    : $(".realtime.arr").slice(1).last().length
+    ? getRecordObj($(".realtime.arr").slice(1).last())
+    : null;
   // console.log(`DESTINATION: ${destination}`);
   const callingPoints: Array<recordInfo["body"]> | null = getCallingPoints(
     $,
