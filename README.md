@@ -1,6 +1,6 @@
 # trainspy 2.0 🔍
 
-Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this fast & free RealTimeTrains scraper. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
+Get fast & free departures at any UK train station & recieve instant real-time updates on trains throughout their journey. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
 
 _Add me on discord - I'd love to hear your feedback! @tyetiesthetie_
 
@@ -12,15 +12,17 @@ npm i trainspy
 
 # Find departures
 
-`findTrains(stationNameOrCode)`
+`findTrains(stationNameOrCode)` _-> Promise<typeof Object>_
 
 ```js
-const trains = await findTrains("WLF") //-> Promise<typeof Object>
+const trains = await findTrains("WLF")
 const moreTrains await findTrains("Solihull")
 ```
+
 _🌻 NOTE: Location co-ordinates are unavailable with use of a station name._
 
 example response:
+
 ```js
 {
   name: 'Whittlesford Parkway',
@@ -53,10 +55,10 @@ example response:
 ```
 
 # Tracking a train
-`trackTrain(serviceID, date?, timeTillRefresh?)`
+
+`trackTrain(serviceID, date?, timeTillRefresh?)` _-> Promise<typeof EventEmitter>_
 
 Emit live updates on a train until it's journey is complete. You first need the `serviceID`. Retrieved by `findTrains(stationNameOrCode)` as shown above.
-
 
 E.g. ServiceID `P70052` departing on 18/08/2023:
 
@@ -66,13 +68,15 @@ trackTrain("P70052", "2023-08-18").then((emitter) => {
     //your code for journey updates!
   });
   emitter.on("information", (update) => {
-    console.log(update)
+    console.log(update);
   });
 });
 ```
+
 _**🌻 Note**: Date must be in the form YYYY-MM-DD, defaults to today. You must enter an event name of "journey" for journey updates, and "information" for information (error, cancellation etc.) updates._
 
-Example journey update:
+Example journey updates:
+
 ```js
 {
   status: 'At platform',
@@ -87,63 +91,44 @@ Example journey update:
     departure: { actual: null, scheduled: '2147' }
   },
   callingPoints: [
-    {
-      name: 'Galton Jn',
-      code: 'XGJ',
-      location: null,
-      platform: null,
-      stopsHere: false,
-      delay: 0,
-      arrival: { actual: null, scheduled: null },
-      departure: { actual: null, scheduled: '2148' }
-    },
-    {
-      name: 'Smethwick Galton Bridge',
-      code: 'SGB',
-      location: { latitude: 52.5017945032, longitude: -1.9805048854 },
-      platform: null,
-      stopsHere: true,
-      delay: 0,
-      arrival: { actual: null, scheduled: '2149' },
-      departure: { actual: null, scheduled: '2150' }
-    },
-    {
-      name: 'Sandwell & Dudley',
-      code: 'SAD',
-      location: { latitude: 52.508672806, longitude: -2.0115900516 },
-      platform: '2',
-      stopsHere: true,
-      delay: 0,
-      arrival: { actual: null, scheduled: '2152' },
-      departure: { actual: null, scheduled: '2153' }
-    },
+  {
+    name: 'Sandwell & Dudley',
+    code: 'SAD',
+    location: { latitude: 52.508672806, longitude: -2.0115900516 },
+    platform: '2',
+    stopsHere: true,
+    delay: 0,
+    arrival: { actual: null, scheduled: '2152' },
+    departure: { actual: null, scheduled: '2153' }
+  },
     ...
   ]
 }
 ```
 
 Example information update:
+
 ```js
   {
     information: 'Error', details: 'Check service ID.'
   }
 ```
 
-
 ## Return values
+
 Journey updates
-| Property      | Type                                                                                                                                                                                  |
-| ------------- | ---------------------------- |
-| status        | string                                                                                                                                                                                |
-| station       | { `name`: string, `code`: string \| null, `location`: { `longitude`: number, `latitude`: number }`stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
-| callingPoints | Array\<Station>              |
+
+| Property      | Type                   |
+| ------------- | -----------------------|
+| status        | string                 |
+| station       | { `name`: string, `code`: string \| null, `location`: { `longitude`: number \| null, `latitude`: number \| null }`stopsHere`: boolean, `delay`: number \| null, `arrival`: { `actual`: string \| null, `scheduled`: string \| null }, `departure`: -same as arrival- } |
+| callingPoints | Array\<Station> |
 
 Information updates
-| Property      | Type                                                                                                                                                                                  |
+| Property | Type |
 | ------------- | ---------------------------- |
-| information        | string                  |
-| details       | string |
-
+| information | string |
+| details | string |
 
 Statuses
 
@@ -155,7 +140,6 @@ Statuses
 | At platform | Train is now at a platform of this stopping station |
 | Departed    | Train just departed this stopping station           |
 
-
 ## More examples
 
 Track the next service from London to Manchester, today:
@@ -164,7 +148,9 @@ Track the next service from London to Manchester, today:
 import { trackTrain, findTrains } from "trainspy";
 
 const response = await findTrains("EUS");
-const serviceID = response.departures.find(departure => departure.destination == "Manchester Piccadilly")
+const serviceID = response.departures.find(
+  (departure) => departure.destination == "Manchester Piccadilly"
+).serviceID;
 trackTrain(serviceID).then((emitter) => {
   emitter.on("journey", (update) => {
     //do stuff!
@@ -209,5 +195,6 @@ class trainInformationComponent extends Component {
   }
 };
 ```
+
 A project by Tye.
 Special thanks to @ellcom for their list of longitude & latitude for each station, and to RealTimeTrains for providing the primitives for this project.
