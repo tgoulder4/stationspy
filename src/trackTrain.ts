@@ -2,11 +2,19 @@ const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
-import { get } from "jquery";
 import { getInfo } from "./getInfo";
 import { information, state, recordInfo } from "./types/types";
+
+export async function trackOnce(
+  serviceID: string,
+  date = getCurrentDayTime("YYYY-MM-DD")
+): Promise<recordInfo["body"]> {
+  let html = await getHTML(serviceID, date);
+  let $ = cheerio.load(html);
+  return getInfo(getRecordObj(findAction($(".locationlist")))!).body;
+}
 /**
- * FOR PROD: Module.exports this only. Returns an emitter promise for live train updates.
+ * Returns an emitter promise for live train updates.
  * @param {string} serviceID
  * @param {string} date The date of the service in YYYY-MM-DD format
  * @param {number} timeTillRefresh The time in ms between each refresh. Minimum 5000ms.

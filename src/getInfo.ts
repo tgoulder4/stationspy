@@ -1,4 +1,5 @@
-import { recordInfo } from "./types/types";
+import { recordInfo, Location } from "./types/types";
+var stationLocations = require("./map/stationLocations.json");
 //UNIT TESTS
 export function getDelay(record: cheerio.Cheerio) {
   if (record.find(".delay.nil").length != 0) {
@@ -28,6 +29,15 @@ export function parseStationNameAndCode(stationString: string) {
     code: null,
   };
 }
+export function getLocationObject(code: string | null) {
+  if (stationLocations[code]) {
+    return {
+      latitude: stationLocations[code].latitude,
+      longitude: stationLocations[code].longitude,
+    };
+  }
+  return null;
+}
 export function getInfo(record: cheerio.Cheerio): recordInfo {
   const { name, code } = parseStationNameAndCode(
     record
@@ -39,12 +49,15 @@ export function getInfo(record: cheerio.Cheerio): recordInfo {
       .text()
       .trim()
   );
+  console.log(`code: ${code}`);
   const arrExpValue = record.find(".arr.exp");
   const arrActValue = record.find(".arr.act");
   const depExpValue = record.find(".dep.exp");
   const depActValue = record.find(".dep.act");
   const arrValueExists = arrExpValue.length != 0 || arrActValue.length != 0;
   const depValueExists = depExpValue.length != 0 || depActValue.length != 0;
+  const location = getLocationObject(code);
+
   let platform;
   if (record.find(".platform").text().length != 0) {
     platform = record.find(".platform").text();
@@ -56,6 +69,7 @@ export function getInfo(record: cheerio.Cheerio): recordInfo {
   let commonBodyData: recordInfo["body"] = {
     name: name,
     code: code,
+    location: location,
     platform: platform,
     stopsHere: stopsHere,
     delay: delay,
