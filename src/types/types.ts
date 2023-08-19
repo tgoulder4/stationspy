@@ -6,20 +6,21 @@ export type Location = {
   longitude: Number;
   latitude: Number;
 };
-type Departures = {
-  serviceID: string;
-  destination: string;
-  arrival: Timing;
-  departure: Timing;
-  platform: string;
-  stopsHere: boolean;
-  currentLocation: Location | null;
+export type Departure = {
+  [UID: string]: {
+    destination: string;
+    arrival: Timing;
+    departure: Timing;
+    platform: string;
+    stopsHere: boolean;
+    state: state["body"] | null;
+  };
 };
 export type stationResponse = {
   name: string;
   code: string | null;
   location: Location;
-  services: Array<Departures>;
+  departures: Array<Departure>;
 };
 export type recordInfo = {
   body: {
@@ -83,34 +84,35 @@ export function createInformationBodyResponse(
   };
 }
 export function createDeparture(
-  serviceID: string,
+  UID: string,
   destination: string,
   arrival: Timing,
   departure: Timing,
   platform: string,
   stopsHere: boolean,
-  currentLocation: Location | null
-): Departures {
+  currentTrainState: state["body"] | null
+): Departure {
   return {
-    serviceID,
-    destination,
-    arrival,
-    departure,
-    platform,
-    stopsHere,
-    currentLocation,
+    [UID]: {
+      destination: destination,
+      arrival: arrival,
+      departure: departure,
+      platform: platform,
+      stopsHere: stopsHere,
+      state: currentTrainState,
+    },
   };
 }
 export function createStationResponse(
   name: string,
   code: string | null,
   location: Location,
-  services: Array<Departures>
+  services: Array<Departure>
 ): stationResponse {
   return {
-    name,
-    code,
-    location,
-    services,
+    name: name,
+    code: code,
+    location: location,
+    departures: services,
   };
 }

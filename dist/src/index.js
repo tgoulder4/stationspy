@@ -10,8 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const findTrains_1 = require("./findTrains");
-const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    const trains = yield (0, findTrains_1.default)("BRV");
-    console.log(trains);
-});
-main();
+const util = require("util");
+// module.exports = {
+//   findTrains,
+//   trackTrain,
+// };
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    const trains = yield (0, findTrains_1.default)("WLF");
+    console.log(util.inspect(trains, { showHidden: false, depth: null, colors: true }));
+}))();

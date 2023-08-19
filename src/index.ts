@@ -1,6 +1,13 @@
 import findTrains from "./findTrains";
-const main = async () => {
-  const trains = await findTrains("BRV");
-  console.log(trains);
-};
-main();
+import { trackTrain } from "./trackTrain";
+const util = require("util");
+// module.exports = {
+//   findTrains,
+//   trackTrain,
+// };
+(async () => {
+  const trains = await findTrains("WLF");
+  console.log(
+    util.inspect(trains, { showHidden: false, depth: null, colors: true })
+  );
+})();

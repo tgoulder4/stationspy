@@ -21,24 +21,25 @@ function createInformationBodyResponse(information, details) {
     };
 }
 exports.createInformationBodyResponse = createInformationBodyResponse;
-function createDeparture(serviceID, destination, arrival, departure, platform, stopsHere, currentLocation) {
+function createDeparture(UID, destination, arrival, departure, platform, stopsHere, currentTrainState) {
     return {
-        serviceID,
-        destination,
-        arrival,
-        departure,
-        platform,
-        stopsHere,
-        currentLocation,
+        [UID]: {
+            destination: destination,
+            arrival: arrival,
+            departure: departure,
+            platform: platform,
+            stopsHere: stopsHere,
+            state: currentTrainState,
+        },
     };
 }
 exports.createDeparture = createDeparture;
 function createStationResponse(name, code, location, services) {
     return {
-        name,
-        code,
-        location,
-        services,
+        name: name,
+        code: code,
+        location: location,
+        departures: services,
     };
 }
 exports.createStationResponse = createStationResponse;

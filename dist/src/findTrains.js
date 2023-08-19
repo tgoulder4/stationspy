@@ -11,9 +11,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
+const util = require("util");
 const types_1 = require("./types/types");
 var stationLocations = require("./map/stationLocations.json");
-const getInfo_1 = require("./getInfo");
+const trackTrain_1 = require("./trackTrain");
 //method: present stations
 /**
  * Returns an emitter with live train updates
@@ -36,45 +37,50 @@ function findTrains(stationCode, dateOfDeparture = getCurrentDayTime("YYYY-MM-DD
             !stationCode) {
             return (0, types_1.createInformationBodyResponse)("Error", "Please enter a valid station code or the date and time entered.");
         }
-        let services = [];
         const stationName = stationLocations[stationCode].station_name;
         const location = {
             latitude: stationLocations[stationCode].latitude,
             longitude: stationLocations[stationCode].longitude,
         };
-        // console.log(`Location: ${location}`);
-        yield fetch(`https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`).then((res) => res.text().then((data) => {
-            const $ = cheerio.load(data);
-            $("a.service").each((i, el) => __awaiter(this, void 0, void 0, function* () {
-                const service = $(el);
-                const UID = service.attr("href").match(/gb-nr:(\w+)/);
-                console.log(`UID: ${UID[1]}`);
-                const destination = service.find(".location.d").text();
-                console.log(`Destination: ${destination}`);
-                const stopsHere = !service.hasClass("pass");
-                const arrival = {
-                    actual: service.find(".real.a").text() || null,
-                    scheduled: service.find(".plan.a").text() || null,
-                };
-                console.log(`Arrival: ${arrival}`);
-                const departure = {
-                    actual: service.find(".real.d").text() || null,
-                    scheduled: service.find(".plan.d").text() || null,
-                };
-                console.log(`Departure: ${departure}`);
-                const platform = service.find(".platform.act").text()
-                    ? service.find(".platform.act").text()
-                    : service.find(".platform.exp").text()
-                        ? service.find(".platform.exp").text()
-                        : null;
-                console.log(`Platform: ${platform}`);
-                const currentTrainLocation = (0, getInfo_1.getLocationObject)(stationCode);
-                if (!service.hasClass("pass")) {
-                    services.push((0, types_1.createDeparture)(UID[1], destination, arrival, departure, platform, stopsHere, currentTrainLocation));
-                }
-            }));
-            return (0, types_1.createStationResponse)(stationName, stationCode, location, services);
-        }));
+        const services = [];
+        //rate limiter
+        yield new Promise((r) => setTimeout(r, 2000));
+        const res = yield fetch(`https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`);
+        const $ = cheerio.load(yield res.text());
+        for (const el of $("a.service").toArray()) {
+            const service = $(el);
+            const UID = service.attr("href").match(/gb-nr:(\w+)/);
+            // console.log(`UID: ${UID[1]}`);
+            const destination = service.find(".location.d").text();
+            // console.log(`Destination: ${destination}`);
+            const stopsHere = !service.hasClass("pass");
+            const arrival = {
+                actual: service.find(".real.a.act").text() || null,
+                scheduled: service.find(".real.a.exp").text()
+                    ? service.find(".real.a.exp").text()
+                    : service.find(".plan.a.gbtt").text() || null,
+            };
+            // console.log(`Arrival: ${arrival}`);
+            const departure = {
+                actual: service.find(".real.d.act").text() || null,
+                scheduled: service.find(".real.d.exp").text()
+                    ? service.find(".real.d.exp").text()
+                    : service.find(".plan.d.gbtt").text() || null,
+            };
+            // console.log(`Departure: ${departure}`);
+            const platform = service.find(".platform.act").text()
+                ? service.find(".platform.act").text()
+                : service.find(".platform.exp").text()
+                    ? service.find(".platform.exp").text()
+                    : null;
+            // console.log(`Platform: ${platform}`);
+            yield new Promise((r) => setTimeout(r, 1000));
+            const currentTrainState = yield (0, trackTrain_1.trackOnce)(UID[1]); //.status and .station only
+            if (!service.hasClass("pass")) {
+                services.push((0, types_1.createDeparture)(UID[1], destination, arrival, departure, platform, stopsHere, currentTrainState));
+            }
+        }
+        return (0, types_1.createStationResponse)(stationName, stationCode, location, services);
     });
 }
 exports.default = findTrains;

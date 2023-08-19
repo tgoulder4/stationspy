@@ -8,10 +8,25 @@ import { information, state, recordInfo } from "./types/types";
 export async function trackOnce(
   serviceID: string,
   date = getCurrentDayTime("YYYY-MM-DD")
-): Promise<recordInfo["body"]> {
-  let html = await getHTML(serviceID, date);
-  let $ = cheerio.load(html);
-  return getInfo(getRecordObj(findAction($(".locationlist")))!).body;
+): Promise<state["body"] | null> {
+  const html = await getHTML(serviceID, date);
+  const $: cheerio.Root = cheerio.load(html);
+  const firstDepAct = $(".dep.act").first();
+  const firstDepExp = $(".dep.exp").first();
+  let origin: cheerio.Cheerio | null = null;
+  if (firstDepAct.length != 0 || firstDepExp.length != 0) {
+    origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
+  } else {
+    origin = null;
+  }
+  if (!origin || !locationListExists($)) {
+    return null;
+  }
+  const currentState = getCurrentState($);
+  return {
+    status: currentState.body.status,
+    station: currentState.body.station,
+  };
 }
 /**
  * Returns an emitter promise for live train updates.
@@ -37,6 +52,25 @@ export async function trackTrain(
   const loop = setInterval(async () => {
     let html = await getHTML(serviceID, date);
     let $ = cheerio.load(html);
+    //--  //if no locationlist
+    if (!locationListExists($)) {
+      return informationObject("Error", "Check service ID.");
+    }
+    const firstDepAct = $(".dep.act").first();
+    const firstDepExp = $(".dep.exp").first();
+    let origin: cheerio.Cheerio | null = null;
+    if (firstDepAct.length != 0 || firstDepExp.length != 0) {
+      origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
+    } else {
+      origin = null;
+    }
+    //if no origin
+    if (!origin) {
+      return informationObject(
+        "Null origin. (Service cancelled?)",
+        $(".callout p").text()
+      );
+    }
     //get current state of train as currentState
     currentState = getCurrentState($);
     //check if end of loop
@@ -228,11 +262,7 @@ export const variables = function ($: cheerio.Root) {
 };
 //END UNIT TESTS
 //get state of train given html cheerio object
-export function getCurrentState($: cheerio.Root): state | information {
-  //if no locationlist
-  if (!locationListExists($)) {
-    return informationObject("Error", "Check service ID.");
-  }
+export function getCurrentState($: cheerio.Root): state {
   const { origin, lastActioned, destination, callingPoints } = variables($);
   let dest: recordInfo;
   //if destination reached
@@ -246,13 +276,6 @@ export function getCurrentState($: cheerio.Root): state | information {
         callingPoints
       );
     }
-  }
-  //if no origin
-  if (!origin) {
-    return informationObject(
-      "Null origin. (Service cancelled?)",
-      $(".callout p").text()
-    );
   }
   //if no lastActioned
   if (!lastActioned) {
@@ -322,24 +345,25 @@ export function getCurrentState($: cheerio.Root): state | information {
       callingPoints
     );
   }
-  function stateObject(
-    _status: string,
-    _station: recordInfo["body"],
-    _action: string,
-    _callingPoints?: Array<recordInfo["body"]> | null
-  ): state {
-    return {
-      body: {
-        status: _status,
-        station: _station,
-        callingPoints: _callingPoints,
-      },
-      hidden: {
-        update_type: "journey",
-        action: _action,
-      },
-    };
-  }
+  return stateObject("Couldn't get state.", getInfo(lastActioned).body, "end");
+}
+function stateObject(
+  _status: string,
+  _station: recordInfo["body"],
+  _action: string,
+  _callingPoints?: Array<recordInfo["body"]> | null
+): state {
+  return {
+    body: {
+      status: _status,
+      station: _station,
+      callingPoints: _callingPoints,
+    },
+    hidden: {
+      update_type: "journey",
+      action: _action,
+    },
+  };
 }
 //update to train state
 function emitUpdate(
