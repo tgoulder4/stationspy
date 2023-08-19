@@ -2,6 +2,8 @@
 
 Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this fast & free RealTimeTrains scraper.
 
+_Add me on discord - I'd love to hear your feedback! @tyetiesthetie_
+
 ## Install trainspy
 
 ```js
