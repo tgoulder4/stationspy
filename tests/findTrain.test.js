@@ -1,7 +1,7 @@
 //tests:
 //non existent code, wrong code
 const { expect, test } = require("@jest/globals");
-const findTrains = require("../src/findTrains");
+import findTrains from "../src/findTrains";
 test("Non existent code returns an error", async () => {
   expect(await findTrains("")).toStrictEqual({
     details: "Please enter a valid station code or the date and time entered.",
