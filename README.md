@@ -1,6 +1,6 @@
-# trainspy 🔍
+# trainspy 2.0 🔍
 
-Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this fast & free RealTimeTrains scraper.
+Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this fast & free RealTimeTrains scraper. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
 
 _Add me on discord - I'd love to hear your feedback! @tyetiesthetie_
 
@@ -12,16 +12,15 @@ npm i trainspy
 
 # Find departures
 
-Departures can be retrieved by a station's name or code:
+`findTrains(stationNameOrCode)`
 
 ```js
-findTrains("WLF");
+const trains = await findTrains("WLF") //-> Promise<typeof Object>
+const moreTrains await findTrains("Solihull")
 ```
+_🌻 NOTE: Location co-ordinates are unavailable with use of a station name._
 
-_⚠️NOTE: Some features are unavailable with a station name. Use it's code for the best experience!_
-
-which returns in the following format:
-
+example response:
 ```js
 {
   name: 'Whittlesford Parkway',
@@ -54,40 +53,27 @@ which returns in the following format:
 ```
 
 # Tracking a train
-
+Emit live updates on a train until it's journey is complete. You first need the `serviceID`. Retrieved by `findTrains(stationNameOrCode)` as shown above.
 ```js
-trackTrain(serviceID, date?, timeTillRefresh?) //date in form YYYY-MM-DD, defaults to today
+trackTrain(serviceID, date?, timeTillRefresh?) //-> Promise<typeof EventEmitter>
 ```
+_**🌻 Note**: Date must be in the form YYYY-MM-DD, defaults to today_
 
-You first need the `serviceID`. Retrieved by `findTrains(station)` as shown above.
-
-## Track a service
-
-`trackTrain` returns a promise - `emitter`.
-This emits live updates on the train until the journey is complete.
 E.g. ServiceID `P70052` departing on 18/08/2023:
 
 ```js
 trackTrain("P70052", "2023-08-18").then((emitter) => {
-  emitter.on("journey", (journeyUpdate) => {
-    //your code for journey updates, in terms of 'journeyUpdate'
+  emitter.on("journey", (update) => {
+    //your code for journey updates!
   });
-  emitter.on("information", (infoUpdate) => console.log(infoUpdate));
+  emitter.on("information", (update) => {
+    console.log(update)
+  });
 });
 ```
+_🌻 Note you must enter an event name of "journey" for journey updates, and "information" for information (error, cancellation etc.) updates._
 
-_Note you must enter an event name of "journey" or "information"._
-
-### Journey updates:
-
-A journey update consists of the following properties:
-
-| Property      | Type                                                                                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status        | string                                                                                                                                                                                |
-| Station       | { `name`: string, `code`: string \| null, `location`: {}`stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
-| callingPoints | Array\<Station>                                                                                                                                                                       |
-
+Example journey update:
 ```js
 {
   status: 'At platform',
@@ -137,6 +123,31 @@ A journey update consists of the following properties:
 }
 ```
 
+Example information update:
+```js
+  {
+    information: 'Error', details: 'Check service ID.'
+  }
+```
+
+
+## Return values
+Journey updates
+| Property      | Type                                                                                                                                                                                  |
+| ------------- | ---------------------------- |
+| status        | string                                                                                                                                                                                |
+| station       | { `name`: string, `code`: string \| null, `location`: { `longitude`: number, `latitude`: number }`stopsHere`: boolean, `delay`: number, `arrival`: { `actual`: string, `scheduled`: string }, `departure`: -same as arrival- } |
+| callingPoints | Array\<Station>              |
+
+Information updates
+| Property      | Type                                                                                                                                                                                  |
+| ------------- | ---------------------------- |
+| information        | string                  |
+| details       | string |
+
+
+Statuses
+
 | Status      | Explanation                                         |
 | ----------- | --------------------------------------------------- |
 | Passed      | Train just passed this non-stopping station         |
@@ -145,13 +156,6 @@ A journey update consists of the following properties:
 | At platform | Train is now at a platform of this stopping station |
 | Departed    | Train just departed this stopping station           |
 
-### Information updates:
-
-```js
-  {
-    information: 'Error', details: 'Check service ID.'
-  }
-```
 
 ## More examples
 
@@ -161,13 +165,9 @@ Track the next service from London to Manchester, today:
 import { trackTrain, findTrains } from "trainspy";
 
 const services = await findTrains("EUS");
-const serviceID = services.forEach((service) => {
-  if (service.destination == "Manchester Piccadilly") {
-    return service.serviceID;
-  }
-});
+const serviceID = service.departures.find(departure => departure.destination == "Manchester Piccadilly")
 trackTrain(serviceID).then((emitter) => {
-  emitter.on("journey", (journeyUpdate) => {
+  emitter.on("journey", (update) => {
     //do stuff!
   });
 });
@@ -211,4 +211,4 @@ class trainInformationComponent extends Component {
 };
 ```
 
-Special thanks to @ellcom for their list of longitude & latitude for each station.
+Special thanks to @ellcom for their list of longitude & latitude for each station, and to RealTimeTrains for providing the primitives for this project.
