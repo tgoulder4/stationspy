@@ -19,7 +19,7 @@ import { getLocationObject } from "./getInfo";
  * @param {string} dateOfDeparture Date of departure in YYYY-MM-DD format. Defaults to current day.
  * @param {string} timeOfDeparture Time of departure in HHmm format. Defaults to current time.
  */
-module.exports = async function findTrains(
+export default async function findTrains(
   stationCode: string,
   dateOfDeparture: string = getCurrentDayTime("YYYY-MM-DD"),
   timeOfDeparture: string = getCurrentDayTime("HHmm")
@@ -104,4 +104,4 @@ module.exports = async function findTrains(
       );
     })
   );
-};
+}

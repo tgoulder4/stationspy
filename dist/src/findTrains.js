@@ -21,7 +21,7 @@ const getInfo_1 = require("./getInfo");
  * @param {string} dateOfDeparture Date of departure in YYYY-MM-DD format. Defaults to current day.
  * @param {string} timeOfDeparture Time of departure in HHmm format. Defaults to current time.
  */
-module.exports = function findTrains(stationCode, dateOfDeparture = getCurrentDayTime("YYYY-MM-DD"), timeOfDeparture = getCurrentDayTime("HHmm")) {
+function findTrains(stationCode, dateOfDeparture = getCurrentDayTime("YYYY-MM-DD"), timeOfDeparture = getCurrentDayTime("HHmm")) {
     return __awaiter(this, void 0, void 0, function* () {
         //if stationName is 3 letters, destructure from map
         const callOutAndInfoValue = yield fetch(`https://www.realtimetrains.co.uk/search/handler?location=${stationCode}`).then((res) => res.text().then((data) => {
@@ -76,4 +76,5 @@ module.exports = function findTrains(stationCode, dateOfDeparture = getCurrentDa
             return (0, types_1.createStationResponse)(stationName, stationCode, location, services);
         }));
     });
-};
+}
+exports.default = findTrains;

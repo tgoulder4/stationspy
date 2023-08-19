@@ -274,10 +274,12 @@ export function getCurrentState($: cheerio.Root): state | information {
     );
   }
   //if a departure element exists
-  const isDeparture = lastActioned.find(".dep.act").length != 0;
-  const isArrival = lastActioned.find(".arr.act").length != 0;
+  const isActualDeparture = lastActioned.find(".dep.act").length != 0;
+  const isActualArrival = lastActioned.find(".arr.act").length != 0;
+  const noReport = lastActioned.find(".noreport").length != 0;
+  const passStation = lastActioned.find(".pass").length != 0;
   //if arr,dep,stopshere
-  if (isArrival && isDeparture && lastActioned.find(".pass").length == 0) {
+  if (isActualArrival && isActualDeparture) {
     return stateObject(
       "Departed",
       getInfo(lastActioned).body,
@@ -285,8 +287,17 @@ export function getCurrentState($: cheerio.Root): state | information {
       callingPoints
     );
   }
+  //if arr,dep,stopshere
+  if (isActualArrival && !isActualDeparture) {
+    return stateObject(
+      "At platform",
+      getInfo(lastActioned).body,
+      "continue",
+      callingPoints
+    );
+  }
   //if dep,!stopshere
-  if (isDeparture && !isArrival && lastActioned.find(".pass").length != 0) {
+  if (passStation) {
     return stateObject(
       "Passed",
       getInfo(lastActioned).body,
@@ -295,7 +306,15 @@ export function getCurrentState($: cheerio.Root): state | information {
     );
   }
   //if dep, !stopshere
-  if (!isArrival && !isDeparture && lastActioned.find(".pass").length != 0) {
+  if (passStation && noReport) {
+    return stateObject(
+      "Passed - No report",
+      getInfo(lastActioned).body,
+      "continue",
+      callingPoints
+    );
+  }
+  if (noReport && !passStation) {
     return stateObject(
       "Departed - No report",
       getInfo(lastActioned).body,
@@ -303,31 +322,24 @@ export function getCurrentState($: cheerio.Root): state | information {
       callingPoints
     );
   }
-  //if !arr, !dep !stopshere
-  return stateObject(
-    "Passed - No report",
-    getInfo(lastActioned).body,
-    "continue",
-    callingPoints
-  );
-}
-function stateObject(
-  _status: string,
-  _station: recordInfo["body"],
-  _action: string,
-  _callingPoints?: Array<recordInfo["body"]> | null
-): state {
-  return {
-    body: {
-      status: _status,
-      station: _station,
-      callingPoints: _callingPoints,
-    },
-    hidden: {
-      update_type: "journey",
-      action: _action,
-    },
-  };
+  function stateObject(
+    _status: string,
+    _station: recordInfo["body"],
+    _action: string,
+    _callingPoints?: Array<recordInfo["body"]> | null
+  ): state {
+    return {
+      body: {
+        status: _status,
+        station: _station,
+        callingPoints: _callingPoints,
+      },
+      hidden: {
+        update_type: "journey",
+        action: _action,
+      },
+    };
+  }
 }
 //update to train state
 function emitUpdate(

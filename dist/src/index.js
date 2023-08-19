@@ -9,17 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const trackTrain_js_1 = require("./trackTrain.js");
-const cheerio = require("cheerio");
-const { serviceCancelled, departedStoppingStation, passUnknownDelay, passedPassStation, reachedDestination, arriving, journeyNotFoundTest, notYetDeparted, approachingAPass, partiallyCancelled, } = require("../../tests/testHTMLData");
+const findTrains_1 = require("./findTrains");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
-    (0, trackTrain_js_1.trackTrain)("P71033").then((emitter) => {
-        emitter.on("journey", (data) => {
-            console.log(data);
-        });
-        emitter.on("information", (data) => {
-            console.log(data);
-        });
-    });
+    const trains = yield (0, findTrains_1.default)("BRV");
+    console.log(trains);
 });
 main();

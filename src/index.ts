@@ -1,25 +1,6 @@
-import { variables, trackTrain } from "./trackTrain.js";
-const cheerio = require("cheerio");
-const {
-  serviceCancelled,
-  departedStoppingStation,
-  passUnknownDelay,
-  passedPassStation,
-  reachedDestination,
-  arriving,
-  journeyNotFoundTest,
-  notYetDeparted,
-  approachingAPass,
-  partiallyCancelled,
-} = require("../../tests/testHTMLData");
+import findTrains from "./findTrains";
 const main = async () => {
-  trackTrain("P71033").then((emitter) => {
-    emitter.on("journey", (data) => {
-      console.log(data);
-    });
-    emitter.on("information", (data) => {
-      console.log(data);
-    });
-  });
+  const trains = await findTrains("BRV");
+  console.log(trains);
 };
 main();
