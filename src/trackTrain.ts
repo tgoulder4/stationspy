@@ -345,7 +345,7 @@ export function getCurrentState($: cheerio.Root): state {
       callingPoints
     );
   }
-  return stateObject("Couldn't get state.", getInfo(lastActioned).body, "end");
+  return stateObject("N/A - Not departed?", getInfo(lastActioned).body, "end");
 }
 function stateObject(
   _status: string,
