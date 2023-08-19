@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.findStationNameAndCode = void 0;
 const cheerio = require("cheerio");
 const getCurrentDayTime = require("./getDayTime");
 const util = require("util");
@@ -16,16 +17,38 @@ const types_1 = require("./types/types");
 var stationLocations = require("./map/stationLocations.json");
 const trackTrain_1 = require("./trackTrain");
 //method: present stations
+const findStationNameAndCode = (stationNameOrCode) => {
+    //if a match of 3 capital letters,
+    let stationName = "";
+    let stationCode = "";
+    // console.log(
+    //   `stationName: ${stationName}, stationCode: ${stationCode}, stationNameOrCode: ${stationNameOrCode}`
+    // );
+    const match = stationNameOrCode.match(/^[A-Z]{3}$/);
+    if (match) {
+        // console.log(`match: ${match}`);
+        stationName = stationLocations[match[0]].station_name || null;
+        // console.log(`stationName: ${stationName}`);
+        stationCode = match[0];
+        // console.log(`stationCode: ${stationCode}`);
+    }
+    else {
+        stationName = stationNameOrCode;
+        stationCode = null;
+    }
+    return { stationName, stationCode };
+};
+exports.findStationNameAndCode = findStationNameAndCode;
 /**
  * Returns an emitter with live train updates
  * @param {string} stationCode Station code. E.g. 'WLF'
  * @param {string} dateOfDeparture Date of departure in YYYY-MM-DD format. Defaults to current day.
  * @param {string} timeOfDeparture Time of departure in HHmm format. Defaults to current time.
  */
-function findTrains(stationCode, dateOfDeparture = getCurrentDayTime("YYYY-MM-DD"), timeOfDeparture = getCurrentDayTime("HHmm")) {
+function findTrains(stationNameOrCode, dateOfDeparture = getCurrentDayTime("YYYY-MM-DD"), timeOfDeparture = getCurrentDayTime("HHmm")) {
     return __awaiter(this, void 0, void 0, function* () {
         //if stationName is 3 letters, destructure from map
-        const callOutAndInfoValue = yield fetch(`https://www.realtimetrains.co.uk/search/handler?location=${stationCode}`).then((res) => res.text().then((data) => {
+        const callOutAndInfoValue = yield fetch(`https://www.realtimetrains.co.uk/search/handler?location=${stationNameOrCode}`).then((res) => res.text().then((data) => {
             const $ = cheerio.load(data);
             return { callout: $(".callout"), info: $(".info") };
         }));
@@ -34,22 +57,17 @@ function findTrains(stationCode, dateOfDeparture = getCurrentDayTime("YYYY-MM-DD
             callOutAndInfoValue.callout.find("p").text() ==
                 "Sorry, no services were found in the next two hours." ||
             callOutAndInfoValue.info.find("h3").text() == "Bad request" ||
-            !stationCode) {
+            !stationNameOrCode) {
             return (0, types_1.createInformationBodyResponse)("Error", "Please enter a valid station code or the date and time entered.");
         }
-        //if a match of 3 capital letters,
-        let stationName = "";
-        const match = stationName.match(/[A-Z]{3}/);
-        stationName = !match
-            ? stationName
-            : stationLocations[stationCode].station_name;
+        const { stationName, stationCode } = (0, exports.findStationNameAndCode)(stationNameOrCode);
         const location = {
-            latitude: match ? stationLocations[stationCode].latitude : null,
-            longitude: match ? stationLocations[stationCode].longitude : null,
+            latitude: stationCode ? stationLocations[stationCode].latitude : null,
+            longitude: stationCode ? stationLocations[stationCode].longitude : null,
         };
         const services = [];
         //rate limiter
-        yield new Promise((r) => setTimeout(r, 2000));
+        yield new Promise((r) => setTimeout(r, 1000));
         const res = yield fetch(`https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`);
         const $ = cheerio.load(yield res.text());
         for (const el of $("a.service").toArray()) {

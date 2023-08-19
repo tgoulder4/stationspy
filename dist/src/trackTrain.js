@@ -298,7 +298,7 @@ function getCurrentState($) {
     if (noReport && !passStation) {
         return stateObject("Departed - No report", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
     }
-    return stateObject("Couldn't get state.", (0, getInfo_1.getInfo)(lastActioned).body, "end");
+    return stateObject("N/A - Not departed?", (0, getInfo_1.getInfo)(lastActioned).body, "end");
 }
 exports.getCurrentState = getCurrentState;
 function stateObject(_status, _station, _action, _callingPoints) {

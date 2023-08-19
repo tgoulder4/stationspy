@@ -14,6 +14,26 @@ var stationLocations = require("./map/stationLocations.json");
 import { trackOnce } from "./trackTrain";
 //method: present stations
 
+export const findStationNameAndCode = (stationNameOrCode: string) => {
+  //if a match of 3 capital letters,
+  let stationName = "";
+  let stationCode = "";
+  // console.log(
+  //   `stationName: ${stationName}, stationCode: ${stationCode}, stationNameOrCode: ${stationNameOrCode}`
+  // );
+  const match = stationNameOrCode.match(/^[A-Z]{3}$/);
+  if (match) {
+    // console.log(`match: ${match}`);
+    stationName = stationLocations[match[0]].station_name || null;
+    // console.log(`stationName: ${stationName}`);
+    stationCode = match[0];
+    // console.log(`stationCode: ${stationCode}`);
+  } else {
+    stationName = stationNameOrCode;
+    stationCode = null;
+  }
+  return { stationName, stationCode };
+};
 /**
  * Returns an emitter with live train updates
  * @param {string} stationCode Station code. E.g. 'WLF'
@@ -21,13 +41,13 @@ import { trackOnce } from "./trackTrain";
  * @param {string} timeOfDeparture Time of departure in HHmm format. Defaults to current time.
  */
 export default async function findTrains(
-  stationCode: string,
+  stationNameOrCode: string,
   dateOfDeparture: string = getCurrentDayTime("YYYY-MM-DD"),
   timeOfDeparture: string = getCurrentDayTime("HHmm")
 ): Promise<stationResponse | information["body"]> {
   //if stationName is 3 letters, destructure from map
   const callOutAndInfoValue = await fetch(
-    `https://www.realtimetrains.co.uk/search/handler?location=${stationCode}`
+    `https://www.realtimetrains.co.uk/search/handler?location=${stationNameOrCode}`
   ).then((res) =>
     res.text().then((data) => {
       const $: cheerio.Root = cheerio.load(data);
@@ -40,26 +60,22 @@ export default async function findTrains(
     callOutAndInfoValue.callout.find("p").text() ==
       "Sorry, no services were found in the next two hours." ||
     callOutAndInfoValue.info.find("h3").text() == "Bad request" ||
-    !stationCode
+    !stationNameOrCode
   ) {
     return createInformationBodyResponse(
       "Error",
       "Please enter a valid station code or the date and time entered."
     );
   }
-  //if a match of 3 capital letters,
-  let stationName = "";
-  const match = stationName.match(/[A-Z]{3}/);
-  stationName = !match
-    ? stationName
-    : stationLocations[stationCode].station_name;
+  const { stationName, stationCode } =
+    findStationNameAndCode(stationNameOrCode);
   const location = {
-    latitude: match ? stationLocations[stationCode].latitude : null,
-    longitude: match ? stationLocations[stationCode].longitude : null,
+    latitude: stationCode ? stationLocations[stationCode].latitude : null,
+    longitude: stationCode ? stationLocations[stationCode].longitude : null,
   };
   const services: Array<Departure> = [];
   //rate limiter
-  await new Promise((r) => setTimeout(r, 2000));
+  await new Promise((r) => setTimeout(r, 1000));
   const res = await fetch(
     `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`
   );
