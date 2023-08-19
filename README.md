@@ -53,11 +53,10 @@ example response:
 ```
 
 # Tracking a train
+`trackTrain(serviceID, date?, timeTillRefresh?)`
+
 Emit live updates on a train until it's journey is complete. You first need the `serviceID`. Retrieved by `findTrains(stationNameOrCode)` as shown above.
-```js
-trackTrain(serviceID, date?, timeTillRefresh?) //-> Promise<typeof EventEmitter>
-```
-_**🌻 Note**: Date must be in the form YYYY-MM-DD, defaults to today_
+
 
 E.g. ServiceID `P70052` departing on 18/08/2023:
 
@@ -71,7 +70,7 @@ trackTrain("P70052", "2023-08-18").then((emitter) => {
   });
 });
 ```
-_🌻 Note you must enter an event name of "journey" for journey updates, and "information" for information (error, cancellation etc.) updates._
+_**🌻 Note**: Date must be in the form YYYY-MM-DD, defaults to today. You must enter an event name of "journey" for journey updates, and "information" for information (error, cancellation etc.) updates._
 
 Example journey update:
 ```js
@@ -164,8 +163,8 @@ Track the next service from London to Manchester, today:
 ```js
 import { trackTrain, findTrains } from "trainspy";
 
-const services = await findTrains("EUS");
-const serviceID = service.departures.find(departure => departure.destination == "Manchester Piccadilly")
+const response = await findTrains("EUS");
+const serviceID = response.departures.find(departure => departure.destination == "Manchester Piccadilly")
 trackTrain(serviceID).then((emitter) => {
   emitter.on("journey", (update) => {
     //do stuff!
@@ -185,7 +184,7 @@ class trainInformationComponent extends Component {
   };
 
   trackTrain("P56592").then(emitter=>{
-    emitter.on("journey",(journeyUpdate)=>{
+    emitter.on("journey",(update)=>{
       handleInfoChange(update);
     })
   });
@@ -210,5 +209,5 @@ class trainInformationComponent extends Component {
   }
 };
 ```
-
+A project by Tye.
 Special thanks to @ellcom for their list of longitude & latitude for each station, and to RealTimeTrains for providing the primitives for this project.
