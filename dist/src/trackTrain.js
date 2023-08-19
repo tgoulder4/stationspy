@@ -17,9 +17,25 @@ const equal = require("deep-equal");
 const getInfo_1 = require("./getInfo");
 function trackOnce(serviceID, date = getCurrentDayTime("YYYY-MM-DD")) {
     return __awaiter(this, void 0, void 0, function* () {
-        let html = yield getHTML(serviceID, date);
-        let $ = cheerio.load(html);
-        return (0, getInfo_1.getInfo)(getRecordObj(findAction($(".locationlist")))).body;
+        const html = yield getHTML(serviceID, date);
+        const $ = cheerio.load(html);
+        const firstDepAct = $(".dep.act").first();
+        const firstDepExp = $(".dep.exp").first();
+        let origin = null;
+        if (firstDepAct.length != 0 || firstDepExp.length != 0) {
+            origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
+        }
+        else {
+            origin = null;
+        }
+        if (!origin || !locationListExists($)) {
+            return null;
+        }
+        const currentState = getCurrentState($);
+        return {
+            status: currentState.body.status,
+            station: currentState.body.station,
+        };
     });
 }
 exports.trackOnce = trackOnce;
@@ -44,6 +60,23 @@ function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillR
         const loop = setInterval(() => __awaiter(this, void 0, void 0, function* () {
             let html = yield getHTML(serviceID, date);
             let $ = cheerio.load(html);
+            //--  //if no locationlist
+            if (!locationListExists($)) {
+                return informationObject("Error", "Check service ID.");
+            }
+            const firstDepAct = $(".dep.act").first();
+            const firstDepExp = $(".dep.exp").first();
+            let origin = null;
+            if (firstDepAct.length != 0 || firstDepExp.length != 0) {
+                origin = getRecordObj(firstDepAct.length ? firstDepAct : firstDepExp);
+            }
+            else {
+                origin = null;
+            }
+            //if no origin
+            if (!origin) {
+                return informationObject("Null origin. (Service cancelled?)", $(".callout p").text());
+            }
             //get current state of train as currentState
             currentState = getCurrentState($);
             //check if end of loop
@@ -223,10 +256,6 @@ exports.variables = variables;
 //END UNIT TESTS
 //get state of train given html cheerio object
 function getCurrentState($) {
-    //if no locationlist
-    if (!locationListExists($)) {
-        return informationObject("Error", "Check service ID.");
-    }
     const { origin, lastActioned, destination, callingPoints } = (0, exports.variables)($);
     let dest;
     //if destination reached
@@ -235,10 +264,6 @@ function getCurrentState($) {
         if (destinationReached(lastActioned, destination)) {
             return stateObject("Reached destination", dest.body, "end", callingPoints);
         }
-    }
-    //if no origin
-    if (!origin) {
-        return informationObject("Null origin. (Service cancelled?)", $(".callout p").text());
     }
     //if no lastActioned
     if (!lastActioned) {
@@ -250,22 +275,30 @@ function getCurrentState($) {
         return stateObject(lastA.hidden.badgeText, lastA.body, "continue", callingPoints);
     }
     //if a departure element exists
-    const isDeparture = lastActioned.find(".dep.act").length != 0;
-    const isArrival = lastActioned.find(".arr.act").length != 0;
+    const isActualDeparture = lastActioned.find(".dep.act").length != 0;
+    const isActualArrival = lastActioned.find(".arr.act").length != 0;
+    const noReport = lastActioned.find(".noreport").length != 0;
+    const passStation = lastActioned.find(".pass").length != 0;
     //if arr,dep,stopshere
-    if (isArrival && isDeparture && lastActioned.find(".pass").length == 0) {
+    if (isActualArrival && isActualDeparture) {
         return stateObject("Departed", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
     }
+    //if arr,dep,stopshere
+    if (isActualArrival && !isActualDeparture) {
+        return stateObject("At platform", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
+    }
     //if dep,!stopshere
-    if (isDeparture && !isArrival && lastActioned.find(".pass").length != 0) {
+    if (passStation) {
         return stateObject("Passed", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
     }
     //if dep, !stopshere
-    if (!isArrival && !isDeparture && lastActioned.find(".pass").length != 0) {
+    if (passStation && noReport) {
+        return stateObject("Passed - No report", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
+    }
+    if (noReport && !passStation) {
         return stateObject("Departed - No report", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
     }
-    //if !arr, !dep !stopshere
-    return stateObject("Passed - No report", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
+    return stateObject("Couldn't get state.", (0, getInfo_1.getInfo)(lastActioned).body, "end");
 }
 exports.getCurrentState = getCurrentState;
 function stateObject(_status, _station, _action, _callingPoints) {

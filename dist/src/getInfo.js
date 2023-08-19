@@ -50,7 +50,7 @@ function getInfo(record) {
         .end() //again go back to selected element
         .text()
         .trim());
-    console.log(`code: ${code}`);
+    // console.log(`code: ${code}`);
     const arrExpValue = record.find(".arr.exp");
     const arrActValue = record.find(".arr.act");
     const depExpValue = record.find(".dep.exp");
