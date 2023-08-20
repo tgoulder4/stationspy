@@ -2,7 +2,7 @@
 
 Get fast & free departures at any UK train station & recieve instant real-time updates on trains throughout their journey. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
 
-_Add me on discord - I'd love to hear your feedback! @tyetiesthetie_
+_Add me on discord - I'd love to hear your feedback! @thaitiesthetie_
 
 ## Install trainspy
 
