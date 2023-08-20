@@ -12,7 +12,7 @@ npm i trainspy
 
 # Find departures
 
-`findTrains(stationNameOrCode)` _-> Promise<typeof Object>_
+`findTrains(stationNameOrCode)` _-> Promise\<typeof Object>_
 
 ```js
 const trains = await findTrains("WLF")
@@ -56,7 +56,7 @@ example response:
 
 # Tracking a train
 
-`trackTrain(serviceID, date?, timeTillRefresh?)` _-> Promise<typeof EventEmitter>_
+`trackTrain(serviceID, date?, timeTillRefresh?)` _-> Promise\<typeof EventEmitter>_
 
 Emit live updates on a train until it's journey is complete. You first need the `serviceID`. Retrieved by `findTrains(stationNameOrCode)` as shown above.
 
