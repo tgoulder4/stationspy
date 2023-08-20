@@ -52,18 +52,11 @@ function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillR
         }
         let previousState;
         let currentState;
-        if (!serviceID) {
-            return "Enter a service ID.";
-        }
         const trainUpdateEmitter = new EventEmitter();
         //loop here every 5s. 'const loop =' needed for strange js behaviour
         const loop = setInterval(() => __awaiter(this, void 0, void 0, function* () {
             let html = yield getHTML(serviceID, date);
             let $ = cheerio.load(html);
-            //--  //if no locationlist
-            if (!locationListExists($)) {
-                return informationObject("Error", "Check service ID.");
-            }
             const firstDepAct = $(".dep.act").first();
             const firstDepExp = $(".dep.exp").first();
             let origin = null;
@@ -73,25 +66,30 @@ function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillR
             else {
                 origin = null;
             }
-            //if no origin
-            if (!origin) {
-                return informationObject("Null origin. (Service cancelled?)", $(".callout p").text());
-            }
-            //get current state of train as currentState
-            currentState = getCurrentState($);
-            //check if end of loop
-            if (currentState.hidden.action == "end") {
-                //stop loop
+            if (!locationListExists($) || !serviceID || !origin) {
+                emitUpdate(trainUpdateEmitter, informationObject("Error", $(".callout p").text() ||
+                    $(".callout p").text() ||
+                    $(".callout h3").text() ||
+                    "Check the service ID and date. (Maybe the train departed yesterday?)"));
                 clearInterval(loop);
             }
-            //if the refreshed state is different
-            if (!equal(currentState, previousState)) {
-                emitUpdate(trainUpdateEmitter, currentState);
-                previousState = currentState;
+            else {
+                //get current state of train as currentState
+                currentState = getCurrentState($);
+                //check if end of loop
+                if (currentState.hidden.action == "end") {
+                    //stop loop
+                    clearInterval(loop);
+                }
+                //if the refreshed state is different
+                if (!equal(currentState, previousState)) {
+                    emitUpdate(trainUpdateEmitter, currentState);
+                    previousState = currentState;
+                }
             }
         }), timeTillRefresh);
-        //return the emitter for subscription
         return trainUpdateEmitter;
+        //return the emitter for subscription
     });
 }
 exports.trackTrain = trackTrain;
@@ -317,5 +315,5 @@ function stateObject(_status, _station, _action, _callingPoints) {
 //update to train state
 function emitUpdate(emitter, stateUpdate) {
     //if it's a journey update
-    emitter.emit(`${stateUpdate.hidden.update_type}`, stateUpdate.body);
+    emitter.emit(stateUpdate.hidden.update_type, stateUpdate.body);
 }

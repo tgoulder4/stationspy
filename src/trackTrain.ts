@@ -38,24 +38,18 @@ export async function trackTrain(
   serviceID: string,
   date = getCurrentDayTime("YYYY-MM-DD"),
   timeTillRefresh = 5000
-) {
+): Promise<typeof EventEmitter | information["body"]> {
   if (timeTillRefresh < 5000) {
     timeTillRefresh = 5000;
   }
   let previousState: state | information;
   let currentState: state | information;
-  if (!serviceID) {
-    return "Enter a service ID.";
-  }
   const trainUpdateEmitter = new EventEmitter();
   //loop here every 5s. 'const loop =' needed for strange js behaviour
+
   const loop = setInterval(async () => {
     let html = await getHTML(serviceID, date);
     let $ = cheerio.load(html);
-    //--  //if no locationlist
-    if (!locationListExists($)) {
-      return informationObject("Error", "Check service ID.");
-    }
     const firstDepAct = $(".dep.act").first();
     const firstDepExp = $(".dep.exp").first();
     let origin: cheerio.Cheerio | null = null;
@@ -64,28 +58,36 @@ export async function trackTrain(
     } else {
       origin = null;
     }
-    //if no origin
-    if (!origin) {
-      return informationObject(
-        "Null origin. (Service cancelled?)",
-        $(".callout p").text()
+
+    if (!locationListExists($) || !serviceID || !origin) {
+      emitUpdate(
+        trainUpdateEmitter,
+        informationObject(
+          "Error",
+          $(".callout p").text() ||
+            $(".callout p").text() ||
+            $(".callout h3").text() ||
+            "Check the service ID and date. (Maybe the train departed yesterday?)"
+        )
       );
-    }
-    //get current state of train as currentState
-    currentState = getCurrentState($);
-    //check if end of loop
-    if (currentState.hidden.action == "end") {
-      //stop loop
       clearInterval(loop);
-    }
-    //if the refreshed state is different
-    if (!equal(currentState, previousState)) {
-      emitUpdate(trainUpdateEmitter, currentState);
-      previousState = currentState;
+    } else {
+      //get current state of train as currentState
+      currentState = getCurrentState($);
+      //check if end of loop
+      if (currentState.hidden.action == "end") {
+        //stop loop
+        clearInterval(loop);
+      }
+      //if the refreshed state is different
+      if (!equal(currentState, previousState)) {
+        emitUpdate(trainUpdateEmitter, currentState);
+        previousState = currentState;
+      }
     }
   }, timeTillRefresh);
-  //return the emitter for subscription
   return trainUpdateEmitter;
+  //return the emitter for subscription
 }
 function informationObject(
   informationString: string,
@@ -371,5 +373,5 @@ function emitUpdate(
   stateUpdate: state | information
 ) {
   //if it's a journey update
-  emitter.emit(`${stateUpdate.hidden.update_type}`, stateUpdate.body);
+  emitter.emit(stateUpdate.hidden.update_type, stateUpdate.body);
 }
