@@ -1,6 +1,6 @@
 import findTrains from "./findTrains";
 import { trackTrain } from "./trackTrain";
-const util = require("util");
+// const util = require("util");
 module.exports = {
   findTrains,
   trackTrain,
@@ -14,7 +14,7 @@ module.exports = {
 //     console.log(util.inspect(data, false, null, true));
 //   });
 // });
-(async () => {
-  const data = await findTrains("ABC", "2023-08-19")
-  console.log(util.inspect(data, false, null, true));
-})();
+// (async () => {
+//   const data = await findTrains("BHM", "2023-08-19")
+//   console.log(util.inspect(data, false, null, true));
+// })();
