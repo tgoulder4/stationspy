@@ -38,7 +38,13 @@ export const findStationNameAndCode = (stationNameOrCode: string) => {
     // console.log(`stationCode: ${stationCode}`);
 } else {
     stationName = stationNameOrCode;
-    stationCode = stationCodes["stations"].find(station=> station["Station Name"] == stationNameOrCode)["CRS Code"];
+    const jsonMatch = stationCodes["stations"].find(station=> station["Station Name"] == stationNameOrCode)
+    if (jsonMatch){
+        stationCode = jsonMatch["CRS Code"]
+    }
+    else{
+        stationCode = null;
+    }
   }
   return { stationName, stationCode };
 };
