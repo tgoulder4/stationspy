@@ -1,5 +1,5 @@
 # trainspy 2.0 🔍
-[![Downloads](https://img.shields.io/npm/dt/trainspy?logo=npm&style=flat-square)](https://npmjs.com/package/trainspy) [![Discord](https://img.shields.io/discord/667479986214666272?logo=discord&logoColor=white&style=flat-square)](https://discord.gg/3bnnkvrZwc)
+[![Downloads](https://img.shields.io/npm/dt/trainspy?logo=npm&style=flat-square)](https://npmjs.com/package/trainspy) [![Discord](https://img.shields.io/discord/1128724355854114848?logo=discord&logoColor=white&style=flat-square)](https://discord.gg/3bnnkvrZwc)
 
 Get fast & free departures at any UK train station & recieve instant real-time updates on trains throughout their journey. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
 
