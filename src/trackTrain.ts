@@ -63,7 +63,13 @@ export async function trackTrain(
       emitUpdate(
         trainUpdateEmitter,
         informationObject(
-          "Error",`${$(".callout p").text() || $(".callout p").text() || $(".callout h3").text() || $(".info h3").text()} (Hint: Check the date. Maybe the train departed before today?)`
+          "Error",
+          `${
+            $(".callout p").text() ||
+            $(".callout p").text() ||
+            $(".callout h3").text() ||
+            $(".info h3").text()
+          } (Hint: Check the date. Maybe the train departed before today?)`
         )
       );
       clearInterval(loop);
@@ -194,21 +200,21 @@ export function getCallingPoints(
   lastActioned: cheerio.Cheerio | null,
   destination: cheerio.Cheerio | null
 ): Array<recordInfo["body"]> | null {
+  let callingPoints: cheerio.Cheerio;
   if (lastActioned) {
-    const callingPoints: cheerio.Cheerio = lastActioned.nextAll();
-    if (callingPoints.length == 0) {
-      // console.log("NO CALLING POINTS FROM DOM");
-      return null;
-    }
-    let callPoints: Array<recordInfo["body"]> = [];
-    callingPoints.each((i, el) => {
-      callPoints.push(getInfo($(el)).body);
-    });
-    // console.log("RETURNING CALLPOINTS");
-    return callPoints;
+    callingPoints = lastActioned.nextAll();
+  } else {
+    callingPoints = $(".location.call");
   }
-  // console.log("NO LASTACTIONED");
-  return null;
+  if (callingPoints.length == 0) {
+    // console.log("NO CALLING POINTS FROM DOM");
+    return null;
+  }
+  let callPoints: Array<recordInfo["body"]> = [];
+  callingPoints.each((i, el) => {
+    callPoints.push(getInfo($(el)).body);
+  });
+  return callPoints;
 }
 export function locationListExists($: cheerio.Root) {
   if ($(".locationlist").length == 0) {

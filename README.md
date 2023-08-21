@@ -1,5 +1,5 @@
 # trainspy 2.0 🔍
-[![Downloads](https://img.shields.io/npm/dt/trainspy?logo=npm&style=flat-square)](https://npmjs.com/package/trainspy) [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/3bnnkvrZwc)
+[![Downloads](https://img.shields.io/npm/dt/trainspy?logo=npm&style=flat-square)](https://npmjs.com/package/trainspy) [![Discord](https://img.shields.io/discord/667479986214666272?logo=discord&logoColor=white&style=flat-square)](https://discord.gg/3bnnkvrZwc)
 
 Get fast & free departures at any UK train station & recieve instant real-time updates on trains throughout their journey. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
 
@@ -19,8 +19,10 @@ npm i trainspy
 import { findTrains } from "trainspy";
 
 (async()=> {
-  const trains = await findTrains("WLF")
-  const moreTrains = await findTrains("Solihull")
+
+  const trains = await findTrains("WLF");
+  const moreTrains = await findTrains("Solihull");
+
   console.log(trains);
 })();
 ```
@@ -109,6 +111,33 @@ Example journey updates:
   },
     ...
   ]
+}
+```
+```js
+{
+  status: 'Not departed',
+  station: {
+    name: 'Birmingham New Street',
+    code: 'BHM',
+    location: { latitude: 52.4778312827, longitude: -1.9002004707 },
+    platform: '7B',
+    stopsHere: true,
+    delay: 0,
+    arrival: { actual: null, scheduled: null },
+    departure: { actual: null, scheduled: '0500' }
+  },
+  callingPoints: [
+    {
+      name: 'Birmingham New Street',
+      code: 'BHM',
+      location: { latitude: 52.4778312827, longitude: -1.9002004707 },
+      platform: '7B',
+      stopsHere: true,
+      delay: 0,
+      arrival: { actual: null, scheduled: null },
+      departure: { actual: null, scheduled: '0500' }
+    },
+    ...]
 }
 ```
 

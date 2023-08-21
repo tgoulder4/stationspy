@@ -67,7 +67,10 @@ function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillR
                 origin = null;
             }
             if (!locationListExists($) || !serviceID || !origin) {
-                emitUpdate(trainUpdateEmitter, informationObject("Error", `${$(".callout p").text() || $(".callout p").text() || $(".callout h3").text() || $(".info h3").text()} (Hint: Check the date. Maybe the train departed before today?)`));
+                emitUpdate(trainUpdateEmitter, informationObject("Error", `${$(".callout p").text() ||
+                    $(".callout p").text() ||
+                    $(".callout h3").text() ||
+                    $(".info h3").text()} (Hint: Check the date. Maybe the train departed before today?)`));
                 clearInterval(loop);
             }
             else {
@@ -187,21 +190,22 @@ function findAction(locationList) {
 }
 exports.findAction = findAction;
 function getCallingPoints($, lastActioned, destination) {
+    let callingPoints;
     if (lastActioned) {
-        const callingPoints = lastActioned.nextAll();
-        if (callingPoints.length == 0) {
-            // console.log("NO CALLING POINTS FROM DOM");
-            return null;
-        }
-        let callPoints = [];
-        callingPoints.each((i, el) => {
-            callPoints.push((0, getInfo_1.getInfo)($(el)).body);
-        });
-        // console.log("RETURNING CALLPOINTS");
-        return callPoints;
+        callingPoints = lastActioned.nextAll();
     }
-    // console.log("NO LASTACTIONED");
-    return null;
+    else {
+        callingPoints = $(".location.call");
+    }
+    if (callingPoints.length == 0) {
+        // console.log("NO CALLING POINTS FROM DOM");
+        return null;
+    }
+    let callPoints = [];
+    callingPoints.each((i, el) => {
+        callPoints.push((0, getInfo_1.getInfo)($(el)).body);
+    });
+    return callPoints;
 }
 exports.getCallingPoints = getCallingPoints;
 function locationListExists($) {
