@@ -67,10 +67,7 @@ function trackTrain(serviceID, date = getCurrentDayTime("YYYY-MM-DD"), timeTillR
                 origin = null;
             }
             if (!locationListExists($) || !serviceID || !origin) {
-                emitUpdate(trainUpdateEmitter, informationObject("Error", $(".callout p").text() ||
-                    $(".callout p").text() ||
-                    $(".callout h3").text() ||
-                    "Check the service ID and date. (Maybe the train departed yesterday?)"));
+                emitUpdate(trainUpdateEmitter, informationObject("Error", `${$(".callout p").text() || $(".callout p").text() || $(".callout h3").text() || $(".info h3").text()} (Hint: Check the date. Maybe the train departed before today?)`));
                 clearInterval(loop);
             }
             else {

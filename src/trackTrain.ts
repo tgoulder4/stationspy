@@ -63,11 +63,7 @@ export async function trackTrain(
       emitUpdate(
         trainUpdateEmitter,
         informationObject(
-          "Error",
-          $(".callout p").text() ||
-            $(".callout p").text() ||
-            $(".callout h3").text() ||
-            "Check the service ID and date. (Maybe the train departed yesterday?)"
+          "Error",`${$(".callout p").text() || $(".callout p").text() || $(".callout h3").text() || $(".info h3").text()} (Hint: Check the date. Maybe the train departed before today?)`
         )
       );
       clearInterval(loop);

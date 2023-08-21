@@ -100,7 +100,7 @@ export function createDeparture(
     platform: platform,
     stopsHere: stopsHere,
     state: currentTrainState,
-  };
+  }
 }
 export function createStationResponse(
   name: string,

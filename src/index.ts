@@ -1,12 +1,12 @@
 import findTrains from "./findTrains";
 import { trackTrain } from "./trackTrain";
-// const util = require("util");
+const util = require("util");
 module.exports = {
   findTrains,
   trackTrain,
 };
 
-// trackTrain("P71987", "2023-08-19").then((emitter) => {
+// trackTrain("Smethwick Rolfe Street", "2023-08-19").then((emitter) => {
 //   emitter.on("journey", (data) => {
 //     console.log(util.inspect(data, false, null, true));
 //   });
@@ -14,3 +14,7 @@ module.exports = {
 //     console.log(util.inspect(data, false, null, true));
 //   });
 // });
+(async () => {
+  const data = await findTrains("ABC", "2023-08-19")
+  console.log(util.inspect(data, false, null, true));
+})();

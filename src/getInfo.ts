@@ -1,5 +1,6 @@
 import { recordInfo, Location } from "./types/types";
 var stationLocations = require("./map/stationLocations.json");
+var stationCodes = require("./map/stationCodes.json");
 //UNIT TESTS
 export function getDelay(record: cheerio.Cheerio) {
   if (record.find(".delay.nil").length != 0) {
@@ -29,12 +30,22 @@ export function parseStationNameAndCode(stationString: string) {
     code: null,
   };
 }
-export function getLocationObject(code: string | null) {
-  if (stationLocations[code]) {
+export function getLocationObject(nameOrCode: string | null) {
+  //if it's a code
+  if (stationLocations[nameOrCode]) {
+    return {
+      latitude: stationLocations[nameOrCode].latitude,
+      longitude: stationLocations[nameOrCode].longitude,
+    };
+  }
+  //else find it's code
+  const stationObj = stationCodes["stations"].find((station) => station["Station Name"] == nameOrCode)
+  if (stationObj) {
+    const code = stationObj["CRS Code"];
     return {
       latitude: stationLocations[code].latitude,
       longitude: stationLocations[code].longitude,
-    };
+    }
   }
   return null;
 }

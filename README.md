@@ -1,4 +1,5 @@
 # trainspy 2.0 🔍
+[![Downloads](https://img.shields.io/npm/dt/trainspy?logo=npm&style=flat-square)](https://npmjs.com/package/trainspy) [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/3bnnkvrZwc)
 
 Get fast & free departures at any UK train station & recieve instant real-time updates on trains throughout their journey. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
 
@@ -15,13 +16,16 @@ npm i trainspy
 `findTrains(stationNameOrCode)` _-> Promise\<typeof Object>_
 
 ```js
-const trains = await findTrains("WLF")
-const moreTrains await findTrains("Solihull")
+import { findTrains } from "trainspy";
+
+(async()=> {
+  const trains = await findTrains("WLF")
+  const moreTrains = await findTrains("Solihull")
+  console.log(trains);
+})();
 ```
 
-_🌻 NOTE: Location co-ordinates are unavailable with use of a station name._
-
-example response:
+this yields a response:
 
 ```js
 {
@@ -63,6 +67,8 @@ Emit live updates on a train until it's journey is complete. You first need the 
 E.g. ServiceID `P70052` departing on 18/08/2023:
 
 ```js
+import { trackTrain } from "trainspy";
+
 trackTrain("P70052", "2023-08-18").then((emitter) => {
   emitter.on("journey", (update) => {
     //your code for journey updates!
@@ -122,7 +128,7 @@ Journey updates
 | ------------- | -----------------------|
 | status        | string                 |
 | station       | { `name`: string, `code`: string \| null, `location`: { `longitude`: number \| null, `latitude`: number \| null }`stopsHere`: boolean, `delay`: number \| null, `arrival`: { `actual`: string \| null, `scheduled`: string \| null }, `departure`: -same as arrival- } |
-| callingPoints | Array\<Station> |
+| callingPoints | Array\<station> |
 
 Information updates
 | Property | Type |

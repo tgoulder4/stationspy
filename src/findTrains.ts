@@ -11,6 +11,7 @@ import {
   state,
 } from "./types/types";
 var stationLocations = require("./map/stationLocations.json");
+var stationCodes = require("./map/stationCodes.json");
 import { trackOnce } from "./trackTrain";
 //method: present stations
 
@@ -24,13 +25,20 @@ export const findStationNameAndCode = (stationNameOrCode: string) => {
   const match = stationNameOrCode.match(/^[A-Z]{3}$/);
   if (match) {
     // console.log(`match: ${match}`);
-    stationName = stationLocations[match[0]].station_name || null;
+    const jsonMatch = stationLocations[match[0]]
+    if (jsonMatch){
+        stationName = stationLocations[match[0]].station_name
+        stationCode = match[0];
+    }
+    else{
+        stationName = null;
+        stationCode = null;
+    }
     // console.log(`stationName: ${stationName}`);
-    stationCode = match[0];
     // console.log(`stationCode: ${stationCode}`);
-  } else {
+} else {
     stationName = stationNameOrCode;
-    stationCode = null;
+    stationCode = stationCodes["stations"].find(station=> station["Station Name"] == stationNameOrCode)["CRS Code"];
   }
   return { stationName, stationCode };
 };
@@ -46,8 +54,11 @@ export default async function findTrains(
   timeOfDeparture: string = getCurrentDayTime("HHmm")
 ): Promise<stationResponse | information["body"]> {
   //if stationName is 3 letters, destructure from map
+  const { stationName, stationCode } =
+  findStationNameAndCode(stationNameOrCode)
+  // console.log(`stationName: ${stationName}, stationCode: ${stationCode}`)
   const callOutAndInfoValue = await fetch(
-    `https://www.realtimetrains.co.uk/search/handler?location=${stationNameOrCode}`
+    `https://www.realtimetrains.co.uk/search/handler?location=${stationCode}`
   ).then((res) =>
     res.text().then((data) => {
       const $: cheerio.Root = cheerio.load(data);
@@ -57,8 +68,6 @@ export default async function findTrains(
   if (
     callOutAndInfoValue.callout.find("h3").text() ==
       "Cannot find primary location" ||
-    callOutAndInfoValue.callout.find("p").text() ==
-      "Sorry, no services were found in the next two hours." ||
     callOutAndInfoValue.info.find("h3").text() == "Bad request" ||
     !stationNameOrCode
   ) {
@@ -67,8 +76,6 @@ export default async function findTrains(
       "Please enter a valid station code or the date and time entered."
     );
   }
-  const { stationName, stationCode } =
-    findStationNameAndCode(stationNameOrCode);
   const location = {
     latitude: stationCode ? stationLocations[stationCode].latitude : null,
     longitude: stationCode ? stationLocations[stationCode].longitude : null,

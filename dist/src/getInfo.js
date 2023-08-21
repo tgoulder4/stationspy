@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getInfo = exports.getLocationObject = exports.parseStationNameAndCode = exports.getDelay = void 0;
 var stationLocations = require("./map/stationLocations.json");
+var stationCodes = require("./map/stationCodes.json");
 //UNIT TESTS
 function getDelay(record) {
     if (record.find(".delay.nil").length != 0) {
@@ -31,8 +32,18 @@ function parseStationNameAndCode(stationString) {
     };
 }
 exports.parseStationNameAndCode = parseStationNameAndCode;
-function getLocationObject(code) {
-    if (stationLocations[code]) {
+function getLocationObject(nameOrCode) {
+    //if it's a code
+    if (stationLocations[nameOrCode]) {
+        return {
+            latitude: stationLocations[nameOrCode].latitude,
+            longitude: stationLocations[nameOrCode].longitude,
+        };
+    }
+    //else find it's code
+    const stationObj = stationCodes["stations"].find((station) => station["Station Name"] == nameOrCode);
+    if (stationObj) {
+        const code = stationObj["CRS Code"];
         return {
             latitude: stationLocations[code].latitude,
             longitude: stationLocations[code].longitude,
