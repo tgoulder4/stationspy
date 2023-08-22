@@ -25,25 +25,25 @@ export const findStationNameAndCode = (stationNameOrCode: string) => {
   const match = stationNameOrCode.match(/^[A-Z]{3}$/);
   if (match) {
     // console.log(`match: ${match}`);
-    const jsonMatch = stationLocations[match[0]]
-    if (jsonMatch){
-        stationName = stationLocations[match[0]].station_name
-        stationCode = match[0];
-    }
-    else{
-        stationName = null;
-        stationCode = null;
+    const jsonMatch = stationLocations[match[0]];
+    if (jsonMatch) {
+      stationName = stationLocations[match[0]].station_name;
+      stationCode = match[0];
+    } else {
+      stationName = null;
+      stationCode = null;
     }
     // console.log(`stationName: ${stationName}`);
     // console.log(`stationCode: ${stationCode}`);
-} else {
+  } else {
     stationName = stationNameOrCode;
-    const jsonMatch = stationCodes["stations"].find(station=> station["Station Name"] == stationNameOrCode)
-    if (jsonMatch){
-        stationCode = jsonMatch["CRS Code"]
-    }
-    else{
-        stationCode = null;
+    const jsonMatch = stationCodes["stations"].find(
+      (station) => station["Station Name"] == stationNameOrCode
+    );
+    if (jsonMatch) {
+      stationCode = jsonMatch["CRS Code"];
+    } else {
+      stationCode = null;
     }
   }
   return { stationName, stationCode };
@@ -61,7 +61,7 @@ export default async function findTrains(
 ): Promise<stationResponse | information["body"]> {
   //if stationName is 3 letters, destructure from map
   const { stationName, stationCode } =
-  findStationNameAndCode(stationNameOrCode)
+    findStationNameAndCode(stationNameOrCode);
   // console.log(`stationName: ${stationName}, stationCode: ${stationCode}`)
   const callOutAndInfoValue = await fetch(
     `https://www.realtimetrains.co.uk/search/handler?location=${stationCode}`
@@ -88,7 +88,7 @@ export default async function findTrains(
   };
   const services: Array<Departure> = [];
   //rate limiter
-  await new Promise((r) => setTimeout(r, 1000));
+  await new Promise((r) => setTimeout(r, 500));
   const res = await fetch(
     `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`
   );
@@ -120,8 +120,6 @@ export default async function findTrains(
       : service.find(".platform.exp").text()
       ? service.find(".platform.exp").text()
       : null;
-    // console.log(`Platform: ${platform}`);
-    await new Promise((r) => setTimeout(r, 1000));
     const currentTrainState: state["body"] | null = await trackOnce(UID[1]); //.status and .station only
     if (!service.hasClass("pass")) {
       services.push(
