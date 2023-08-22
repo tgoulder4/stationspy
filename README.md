@@ -1,4 +1,5 @@
-# trainspy 2.0 🔍
+# trainspy 🔍
+
 [![Downloads](https://img.shields.io/npm/dt/trainspy?logo=npm&style=flat-square)](https://npmjs.com/package/trainspy) [![Discord](https://img.shields.io/discord/1128724355854114848?logo=discord&logoColor=white&style=flat-square)](https://discord.gg/3bnnkvrZwc)
 
 Get fast & free departures at any UK train station & recieve instant real-time updates on trains throughout their journey. Version 2.0 brings exact location tracking with precise latitude & longitude co-ordinates!
@@ -18,8 +19,7 @@ npm i trainspy
 ```js
 import { findTrains } from "trainspy";
 
-(async()=> {
-
+(async () => {
   const trains = await findTrains("WLF");
   const moreTrains = await findTrains("Solihull");
 
@@ -113,6 +113,7 @@ Example journey updates:
   ]
 }
 ```
+
 ```js
 {
   status: 'Not departed',
@@ -153,11 +154,11 @@ Example information update:
 
 Journey updates
 
-| Property      | Type                   |
-| ------------- | -----------------------|
-| status        | string                 |
+| Property      | Type                                                                                                                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| status        | string                                                                                                                                                                                                                                                                 |
 | station       | { `name`: string, `code`: string \| null, `location`: { `longitude`: number \| null, `latitude`: number \| null }`stopsHere`: boolean, `delay`: number \| null, `arrival`: { `actual`: string \| null, `scheduled`: string \| null }, `departure`: -same as arrival- } |
-| callingPoints | Array\<station> |
+| callingPoints | Array\<station>                                                                                                                                                                                                                                                        |
 
 Information updates
 | Property | Type |
