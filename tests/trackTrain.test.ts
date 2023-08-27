@@ -1,10 +1,9 @@
-import { expect, describe, test, it } from "@jest/globals";
+import { expect, test } from "@jest/globals";
 import cheerio from "cheerio";
 //-----------------MOCKS-----------------
 import {
   serviceCancelled,
   departedStoppingStation,
-  passUnknownDelay,
   passedPassStation,
   reachedDestination,
   arriving,
@@ -20,8 +19,6 @@ import {
   variables,
   locationListExists,
   destinationReached,
-  getCurrentState,
-  getCallingPoints,
 } from "../src/trackTrain";
 import {
   getInfo,
