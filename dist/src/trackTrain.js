@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentState = exports.variables = exports.locationListExists = exports.getCallingPoints = exports.findAction = exports.getRecordObj = exports.badgeExists = exports.destinationReached = exports.originExists = exports.getHTML = exports.trackTrain = exports.trackOnce = void 0;
 const cheerio = require("cheerio");
+const axios = require("axios");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
@@ -132,12 +133,20 @@ function informationObject(informationString, informationDetails) {
 //   );
 // }
 //UNIT TESTS
+//TODO: CHANGE TO GETHTMLTEXT, getHTML(URLString)
 function getHTML(serviceID, date) {
     return __awaiter(this, void 0, void 0, function* () {
         //get real data
-        let response = yield fetch(`https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`);
-        let html = yield response.text();
-        return html;
+        try {
+            let response = yield fetch(`https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`); //why is the status code 404??
+            let html = yield response.text();
+            // let html: string = await response.text();
+            return html;
+        }
+        catch (error) {
+            console.error(error);
+            return "";
+        }
     });
 }
 exports.getHTML = getHTML;

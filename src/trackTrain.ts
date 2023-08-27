@@ -1,4 +1,5 @@
 const cheerio = require("cheerio");
+const axios = require("axios");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
@@ -107,6 +108,7 @@ function informationObject(
   };
 }
 //2-now-tracking
+
 // trainUpdateEmitter.emit(
 //   "information",
 //   informationObject("Now tracking", {
@@ -133,16 +135,24 @@ function informationObject(
 //   );
 // }
 //UNIT TESTS
+
+//TODO: CHANGE TO GETHTMLTEXT, getHTML(URLString)
 export async function getHTML(
   serviceID: string,
   date: string
 ): Promise<string> {
   //get real data
-  let response = await fetch(
-    `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`
-  );
-  let html = await response.text();
-  return html;
+  try {
+    let response = await fetch(
+      `https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`
+    ); //why is the status code 404??
+    let html = await response.text();
+    // let html: string = await response.text();
+    return html;
+  } catch (error) {
+    console.error(error);
+    return "";
+  }
 }
 export function originExists(origin: cheerio.Cheerio | null) {
   if (origin == null) {
