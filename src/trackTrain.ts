@@ -1,5 +1,4 @@
 const cheerio = require("cheerio");
-const axios = require("axios");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");

@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentState = exports.variables = exports.locationListExists = exports.getCallingPoints = exports.findAction = exports.getRecordObj = exports.badgeExists = exports.destinationReached = exports.originExists = exports.getHTML = exports.trackTrain = exports.trackOnce = void 0;
 const cheerio = require("cheerio");
-const axios = require("axios");
 const getCurrentDayTime = require("./getDayTime");
 const EventEmitter = require("events");
 const equal = require("deep-equal");
