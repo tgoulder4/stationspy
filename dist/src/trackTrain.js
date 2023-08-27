@@ -287,7 +287,8 @@ function getCurrentState($) {
     const noReport = lastActioned.find(".noreport").length != 0;
     const passStation = lastActioned.find(".pass").length != 0;
     //if arr,dep,stopshere
-    if (isActualArrival && isActualDeparture) {
+    if ((isActualArrival && isActualDeparture) ||
+        (!isActualArrival && isActualDeparture && !passStation)) {
         return stateObject("Departed", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
     }
     //if arr,dep,stopshere
@@ -295,7 +296,7 @@ function getCurrentState($) {
         return stateObject("At platform", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
     }
     //if dep,!stopshere
-    if (passStation) {
+    if (!isActualArrival && isActualDeparture && passStation) {
         return stateObject("Passed", (0, getInfo_1.getInfo)(lastActioned).body, "continue", callingPoints);
     }
     //if dep, !stopshere

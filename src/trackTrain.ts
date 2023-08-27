@@ -315,7 +315,10 @@ export function getCurrentState($: cheerio.Root): state {
   const noReport = lastActioned.find(".noreport").length != 0;
   const passStation = lastActioned.find(".pass").length != 0;
   //if arr,dep,stopshere
-  if (isActualArrival && isActualDeparture) {
+  if (
+    (isActualArrival && isActualDeparture) ||
+    (!isActualArrival && isActualDeparture && !passStation)
+  ) {
     return stateObject(
       "Departed",
       getInfo(lastActioned).body,
@@ -333,7 +336,7 @@ export function getCurrentState($: cheerio.Root): state {
     );
   }
   //if dep,!stopshere
-  if (passStation) {
+  if (!isActualArrival && isActualDeparture && passStation) {
     return stateObject(
       "Passed",
       getInfo(lastActioned).body,
