@@ -6,15 +6,15 @@ module.exports = {
 };
 // const util = require("util");
 
-// trackTrain("G59487").then((emitter) => {
-//   emitter.on("journey", (data) => {
-//     console.log(util.inspect(data, false, null, true));
-//   });
-//   emitter.on("information", (data) => {
-//     console.log(util.inspect(data, false, null, true));
-//   });
-// });
+// // trackTrain("G59487").then((emitter) => {
+// //   emitter.on("journey", (data) => {
+// //     console.log(util.inspect(data, false, null, true));
+// //   });
+// //   emitter.on("information", (data) => {
+// //     console.log(util.inspect(data, false, null, true));
+// //   });
+// // });
 // (async () => {
-//   const data = await findTrains("BHM");
-//   console.log(util.inspect(data, false, null, true));
+//   const data = await getHTML("testServiceID", "2023-01-01");
+//   console.log(`DATA IS THIS: ${data}`);
 // })();
