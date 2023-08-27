@@ -25,13 +25,13 @@ const findStationNameAndCode = (stationNameOrCode) => {
     // console.log(
     //   `stationName: ${stationName}, stationCode: ${stationCode}, stationNameOrCode: ${stationNameOrCode}`
     // );
-    const match = stationNameOrCode.match(/^[A-Z]{3}$/);
+    const match = stationNameOrCode.trim().match(/^[A-Za-z]{3}$/);
     if (match) {
         // console.log(`match: ${match}`);
-        const jsonMatch = stationLocations[match[0]];
+        const jsonMatch = stationLocations[match[0].toUpperCase()];
         if (jsonMatch) {
-            stationName = stationLocations[match[0]].station_name;
-            stationCode = match[0];
+            stationName = jsonMatch.station_name;
+            stationCode = match[0].toUpperCase();
         }
         else {
             stationName = null;
@@ -80,7 +80,7 @@ function findTrains(stationNameOrCode, dateOfDeparture = getCurrentDayTime("YYYY
         };
         const services = [];
         //rate limiter
-        yield new Promise((r) => setTimeout(r, 500));
+        // await new Promise((r) => setTimeout(r, 500));
         const res = yield fetch(`https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`);
         const $ = cheerio.load(yield res.text());
         for (const el of $("a.service").toArray()) {

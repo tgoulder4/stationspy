@@ -31,7 +31,8 @@ const journeyNotFoundTest = async () => {
     const html = await response.text();
     return html;
   } catch (error) {
-    return error;
+    console.error(error);
+    return "";
   }
 };
 const serviceCancelled = async () => {

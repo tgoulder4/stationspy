@@ -132,12 +132,20 @@ function informationObject(informationString, informationDetails) {
 //   );
 // }
 //UNIT TESTS
+//TODO: CHANGE TO GETHTMLTEXT, getHTML(URLString)
 function getHTML(serviceID, date) {
     return __awaiter(this, void 0, void 0, function* () {
         //get real data
-        let response = yield fetch(`https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`);
-        let html = yield response.text();
-        return html;
+        try {
+            let response = yield fetch(`https://www.realtimetrains.co.uk/service/gb-nr:${serviceID}/${date}/detailed`); //why is the status code 404??
+            let html = yield response.text();
+            // let html: string = await response.text();
+            return html;
+        }
+        catch (error) {
+            console.error(error);
+            return "";
+        }
     });
 }
 exports.getHTML = getHTML;

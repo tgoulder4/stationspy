@@ -37,6 +37,11 @@ export type recordInfo = {
     badgeText: string;
   };
 };
+export type stationLocation = {
+  station_name: string;
+  latitude: Number;
+  longitude: Number;
+};
 export type state = {
   body: {
     status: string;
@@ -100,7 +105,7 @@ export function createDeparture(
     platform: platform,
     stopsHere: stopsHere,
     state: currentTrainState,
-  }
+  };
 }
 export function createStationResponse(
   name: string,

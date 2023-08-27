@@ -9,10 +9,11 @@ import {
   createStationResponse,
   Departure,
   state,
+  stationLocation,
 } from "./types/types";
 var stationLocations = require("./map/stationLocations.json");
 var stationCodes = require("./map/stationCodes.json");
-import { trackOnce } from "./trackTrain";
+import { trackOnce, getHTML } from "./trackTrain";
 //method: present stations
 
 export const findStationNameAndCode = (stationNameOrCode: string) => {
@@ -22,13 +23,13 @@ export const findStationNameAndCode = (stationNameOrCode: string) => {
   // console.log(
   //   `stationName: ${stationName}, stationCode: ${stationCode}, stationNameOrCode: ${stationNameOrCode}`
   // );
-  const match = stationNameOrCode.match(/^[A-Z]{3}$/);
+  const match = stationNameOrCode.trim().match(/^[A-Za-z]{3}$/);
   if (match) {
     // console.log(`match: ${match}`);
-    const jsonMatch = stationLocations[match[0]];
+    const jsonMatch: stationLocation = stationLocations[match[0].toUpperCase()];
     if (jsonMatch) {
-      stationName = stationLocations[match[0]].station_name;
-      stationCode = match[0];
+      stationName = jsonMatch.station_name;
+      stationCode = match[0].toUpperCase();
     } else {
       stationName = null;
       stationCode = null;
@@ -88,7 +89,7 @@ export default async function findTrains(
   };
   const services: Array<Departure> = [];
   //rate limiter
-  await new Promise((r) => setTimeout(r, 500));
+  // await new Promise((r) => setTimeout(r, 500));
   const res = await fetch(
     `https://www.realtimetrains.co.uk/search/detailed/gb-nr:${stationCode}/${dateOfDeparture}/${timeOfDeparture}`
   );
