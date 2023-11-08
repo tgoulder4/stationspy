@@ -64,7 +64,7 @@ this yields a response:
 
 `trackTrain(serviceID, date?, timeTillRefresh?)` _-> Promise\<typeof EventEmitter>_
 
-Emit live updates on a train until it's journey is complete. You first need the `serviceID`. Retrieved by `findTrains(stationNameOrCode)` as shown above.
+Emit live updates on a train until its journey is complete. You first need the `serviceID`. Retrieved by `findTrains(stationNameOrCode)` as shown above.
 
 E.g. ServiceID `P70052` departing on 18/08/2023:
 
@@ -83,7 +83,7 @@ trackTrain("P70052", "2023-08-18").then((emitter) => {
 
 _**🌻 Note**: Date must be in the form YYYY-MM-DD, defaults to today. You must enter an event name of "journey" for journey updates, and "information" for information (error, cancellation etc.) updates._
 
-Example journey updates:
+Example journey update:
 
 ```js
 {
@@ -111,34 +111,6 @@ Example journey updates:
   },
     ...
   ]
-}
-```
-
-```js
-{
-  status: 'Not departed',
-  station: {
-    name: 'Birmingham New Street',
-    code: 'BHM',
-    location: { latitude: 52.4778312827, longitude: -1.9002004707 },
-    platform: '7B',
-    stopsHere: true,
-    delay: 0,
-    arrival: { actual: null, scheduled: null },
-    departure: { actual: null, scheduled: '0500' }
-  },
-  callingPoints: [
-    {
-      name: 'Birmingham New Street',
-      code: 'BHM',
-      location: { latitude: 52.4778312827, longitude: -1.9002004707 },
-      platform: '7B',
-      stopsHere: true,
-      delay: 0,
-      arrival: { actual: null, scheduled: null },
-      departure: { actual: null, scheduled: '0500' }
-    },
-    ...]
 }
 ```
 

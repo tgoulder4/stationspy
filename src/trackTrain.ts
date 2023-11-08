@@ -73,6 +73,7 @@ export async function trackTrain(
         )
       );
       clearInterval(loop);
+      loop.unref();
     } else {
       //get current state of train as currentState
       currentState = getCurrentState($);
@@ -80,6 +81,7 @@ export async function trackTrain(
       if (currentState.hidden.action == "end") {
         //stop loop
         clearInterval(loop);
+        loop.unref();
       }
       //if the refreshed state is different
       if (!equal(currentState, previousState)) {

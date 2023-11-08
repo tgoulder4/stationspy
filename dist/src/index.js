@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const findTrains_1 = require("./findTrains");
 const trackTrain_1 = require("./trackTrain");
 module.exports = {
-    findTrains: findTrains_1.default,
-    trackTrain: trackTrain_1.trackTrain,
+  findTrains: findTrains_1.default,
+  trackTrain: trackTrain_1.trackTrain,
 };
 // const util = require("util");
 // // trackTrain("G59487").then((emitter) => {
