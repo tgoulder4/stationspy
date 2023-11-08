@@ -24,7 +24,7 @@
   },
   "name": "trainspy",
   "description": "Get departures at any UK train station & recieve instant real-time updates on trains throughout their journey via this custom made Realtimetrains scraper.",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "main": "dist\\src\\index.js",
   "directories": {
     "test": "tests"
